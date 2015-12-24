@@ -62,15 +62,7 @@ var controls = function(sel) {
         // manually trigger onSelect function, to make sure dispatch.datesChanged gets called with initial date range
         controls.endSelected(controls.endPicker.getDate());
     }
-    var startPicker = controls.startPicker;
-    var endPicker = controls.endPicker;
-
-    dispatch.on('datesChanged.'+sel, function(sender, extent) {
-        if(sender === sel) return; // avoid infinite loop
-        // if this ever gets implemented (because some additional date picker is added),
-        // take day previous to extent[1] for endPicker's display date
-    });
-    dispatch.on('register.'+sel, function(sender, data) {
+    dispatch.on('register.'+sel, function(sender) {
         if(sender === sel) return; // don't talk to myself
         // somebody is requesting initialisation data
         controls.endSelected(controls.endPicker.getDate()); // trigger dispatch.datesChanged
@@ -80,7 +72,7 @@ var controls = function(sel) {
 
 var projects = function(sel, g) {
     var slct = d3.select(sel);
-    slct.on('change', function() { dispatch.projectChanged(sel, this.value) });
+    slct.on('change', function() { dispatch.projectChanged(sel, this.value); });
 
     // remove any old placeholders before doing data join
     // (so report_project can be called multiple times without spamming <option>s)
@@ -88,13 +80,13 @@ var projects = function(sel, g) {
 
     // make shallow copy of data, for sorting without altering original
     var project = g['project?personal=0&has_instances=1']
-        .map(function(d) { return {id:d.id, display_name:d.display_name} })
-        .sort(function(a, b) { return d3.ascending(a.display_name.toLowerCase(), b.display_name.toLowerCase()) });
+        .map(function(d) { return {id:d.id, display_name:d.display_name}; })
+        .sort(function(a, b) { return d3.ascending(a.display_name.toLowerCase(), b.display_name.toLowerCase()); });
 
     var opt = slct.selectAll('option').data(project);
     opt.enter().append('option');
-    opt.attr('value', function(d) { return d.id });
-    opt.html(function(d) { return d.display_name });
+    opt.attr('value', function(d) { return d.id; });
+    opt.html(function(d) { return d.display_name; });
     opt.exit().remove();
 
     // add placeholder for no project selected
@@ -140,46 +132,46 @@ var pp = function(sel, g) {
     var cols = [
         {
             title  : 'Instance',
-            fn     : function(instance) { return instance.name },
-            agg    : function() { return 'Total:' }, // put sum label in first column of <tfoot>
+            fn     : function(instance) { return instance.name; },
+            agg    : function() { return 'Total:'; }, // put sum label in first column of <tfoot>
         },
         {
             title  : 'Creator',
             desc   : 'User id; in some cases need to get details from LDAP...',
             fn     : function(instance) {
-                var u = g.user.find(function(u) { return u.id === instance.created_by });
+                var u = g.user.find(function(u) { return u.id === instance.created_by; });
                 return u ? u.name : instance.created_by;
             },
         },
         {
             title  : 'Flavour',
             desc   : 'Flavour name',
-            fn     : function(instance) { return instance.flavour },
+            fn     : function(instance) { return instance.flavour; },
             format : Formatters.flavourDisplay(g.flavour),
         },
         {
             title  : 'Availability zone',
-            fn     : function(instance) { return instance._meta.hostAggregates.join(' ') },
+            fn     : function(instance) { return instance._meta.hostAggregates.join(' '); },
         },
         {
             title  : 'Started',
-            fn     : function(instance) { return instance.created ? time(new Date(instance.created)) : '' },
+            fn     : function(instance) { return instance.created ? time(new Date(instance.created)) : ''; },
         },
         {
             title  : 'Terminated',
-            fn     : function(instance) { return instance.deleted ? time(new Date(instance.deleted)) : '' },
+            fn     : function(instance) { return instance.deleted ? time(new Date(instance.deleted)) : ''; },
         },
         {
             title  : 'Walltime',
             desc   : 'Hours:minutes:seconds, during selected time period.',
-            fn     : function(instance) { return instance._meta.hours },
+            fn     : function(instance) { return instance._meta.hours; },
             format : function(hours) {
                 var z = d3.format('02d');
                 var mins = (hours - Math.floor(hours))*60;
                 var secs = (mins - Math.floor(mins))*60;
                 return z(Math.floor(hours))+':'+z(Math.floor(mins))+':'+z(Math.floor(secs));
             },
-            agg    : function(data) { return d3.sum(data, function(instance) { return instance._meta.hours }) },
+            agg    : function(data) { return d3.sum(data, function(instance) { return instance._meta.hours; }); },
             cl     : 'number',
         },
     ];
@@ -190,16 +182,16 @@ var pp = function(sel, g) {
         title  : 'SU',
         desc   : '1 SU \u223C 1 vcpu \u00B7 4 GiB',  // \u223C is &sim; (similar to ~); \u00B7 is &middot;
         fn     : function(instance) {
-            var aggScale = d3.max(instance._meta.hostAggregates, function(agg) { return aggregateScale[agg] }) || 1;
+            var aggScale = d3.max(instance._meta.hostAggregates, function(agg) { return aggregateScale[agg]; }) || 1;
             return aggScale * Math.max(instance.vcpus, Math.ceil(instance.memory/1024/4)) * instance._meta.hours;
         },
-        format : function(su) { return round(su) },
+        format : function(su) { return round(su); },
         cl     : 'number',
     };
     cols.push(su);
 
     // defining agg property will cause a total to be shown in the table
-    su.agg = function(data) { return d3.sum(data, su.fn) };
+    su.agg = function(data) { return d3.sum(data, su.fn); };
 
     // set up table
     var t = Charts.table()
@@ -218,23 +210,26 @@ var pp = function(sel, g) {
 
         // calculate su for months prior to extent, and plot as horizontal bar chart
         var d0 = new Date(extent[0]); // first date in range
-        var dO = new Date(d3.min(instance, function(ins) { return ins.created })); // oldest date in working set (creation of first VM)
+        var dO = new Date(d3.min(instance, function(ins) { return ins.created; })); // oldest date in working set (creation of first VM)
         var maxMonths = isNaN(Date.parse(dO)) ? 0 : d0.getMonth()-dO.getMonth() + 12*(d0.getFullYear()-dO.getFullYear()); // don't show further back into the past than data exist
         var nMonths = Math.min(6, maxMonths);
         var d = new Date(d0.getFullYear(), d0.getMonth() - nMonths, 1);
         var data = [];
         for(var i=0; i<nMonths; i++) {
             var e = new Date(d.getFullYear(), d.getMonth()+1, d.getDate()); // end one month after start
-            var ws = countHours(instance, [d.getTime(), e.getTime()]);
-            data.push({year:d.getFullYear(), month:d.getMonth(), su:su.agg(ws)});
+            data.push({
+                year  : d.getFullYear(),
+                month : d.getMonth(),
+                su    : su.agg(countHours(instance, [d.getTime(), e.getTime()])),
+            });
             d = e;
         }
         var dateFormat = d3.time.format("%b '%y");
         var x = d3.scale.linear()
-            .domain([0, d3.max(data, function(d) { return d.su })])
+            .domain([0, d3.max(data, function(d) { return d.su; })])
             .range([0, 100]);
         var chart = s.select('.chart');
-        var ChartTblEnter = chart.selectAll('div').data([0]).enter().append('div').attr('class', 'tbl');
+        chart.selectAll('div').data([0]).enter().append('div').attr('class', 'tbl');
         var chartTbl = chart.select('.tbl');
         var row = chartTbl.selectAll('.crow').data(data);
         var rowEnter = row.enter().append('div').attr('class', 'crow');
@@ -242,8 +237,8 @@ var pp = function(sel, g) {
         rowEnter.append('div').append('div').attr('class','bar');
         row.select('span').html(function(d) { var mon = new Date(); mon.setMonth(d.month); mon.setFullYear(d.year); return dateFormat(mon); });
         row.select('.bar')
-            .html(function(d) { return Math.round(d.su) })
-            .style('width', function(d) { return x(d.su) + '%' });
+            .html(function(d) { return Math.round(d.su); })
+            .style('width', function(d) { return x(d.su) + '%'; });
         row.exit().remove();
 
         // find instances to be included in bill for this period for this project
@@ -264,8 +259,8 @@ var pp = function(sel, g) {
         updateTotal();
 
         // update SU scaling factors
-        var usedAggregates = ws.reduce(function(val, ins) { return val.concat(ins._meta.hostAggregates) }, []);
-        usedAggregates = usedAggregates.filter(function(ha, i) { return usedAggregates.indexOf(ha) === i }); // filter unique
+        var usedAggregates = ws.reduce(function(val, ins) { return val.concat(ins._meta.hostAggregates); }, []);
+        usedAggregates = usedAggregates.filter(function(ha, i) { return usedAggregates.indexOf(ha) === i; }); // filter unique
         updateScalingFactors(usedAggregates);
     };
 
@@ -320,7 +315,7 @@ var pp = function(sel, g) {
     });
 
     dispatch.register(sel);
-}
+};
 
 /// populate "SU scaling factors" section with values from global "aggregateScale" with specified keys
 var updateScalingFactors = function(keys) {
@@ -334,8 +329,8 @@ var updateScalingFactors = function(keys) {
     li.enter().append('li');
     li.html(function(key) {
         var f = aggregateScale[key] || 1;
-        return '<strong>'+key+'</strong> scaled by <strong>'+format(f)+'</strong>'
-              + (f < 1 && f > 0 ? ' (overcommit factor '+format(1/f)+')' : '');
+        return '<strong>'+key+'</strong> scaled by <strong>'+format(f)+'</strong>' +
+               (f < 1 && f > 0 ? ' (overcommit factor '+format(1/f)+')' : '');
     });
     li.exit().remove();
 };

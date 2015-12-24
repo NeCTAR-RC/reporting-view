@@ -6,27 +6,27 @@ var resources = [
         key    : 'vcpus', // to identify and to access data
         label  : 'VCPUs', // for pretty printing
         format : d3.format('d'),
-        hv     : function(hyp) { return +hyp.cpus }, // to count total resources available across all hypervisors
-        hist   : function(hu) { return hu.vcpus }, // accessor into historical_usage table
+        hv     : function(hyp) { return +hyp.cpus; }, // to count total resources available across all hypervisors
+        hist   : function(hu) { return hu.vcpus; }, // accessor into historical_usage table
     },
     {
         key    : 'memory',
         label  : 'Memory',
-        format : function(mb) { return Formatters.si_bytes(mb*1024*1024) },
-        hv     : function(hyp) { return +hyp.memory },
-        hist   : function(hu) { return hu.memory },
+        format : function(mb) { return Formatters.si_bytes(mb*1024*1024); },
+        hv     : function(hyp) { return +hyp.memory; },
+        hist   : function(hu) { return hu.memory; },
     },
     {
         key    : 'local_storage',
         label  : 'Local storage',
-        format : function(gb) { return Formatters.si_bytes(gb*1024*1024*1024) },
-        hv     : function(hyp) { return +hyp.local_storage },
-        hist   : function(hu) { return hu.local_storage },
+        format : function(gb) { return Formatters.si_bytes(gb*1024*1024*1024); },
+        hv     : function(hyp) { return +hyp.local_storage; },
+        hist   : function(hu) { return hu.local_storage; },
     },
     {
         key    : 'volume_storage',
         label  : 'Volume storage',
-        format : function(gb) { return Formatters.si_bytes(gb*1024*1024*1024) },
+        format : function(gb) { return Formatters.si_bytes(gb*1024*1024*1024); },
         // no hypervisor-determined limit on this, and no historical data
     },
 ];
@@ -38,8 +38,8 @@ Utilisation.init = function() {
     resources.forEach(function(r) {
         nv.addGraph(function() {
             var pieChart = nv.models.pieChart()
-                .x(function(d) { return d.label })
-                .y(function(d) { return d[r.key] })
+                .x(function(d) { return d.label; })
+                .y(function(d) { return d[r.key]; })
                 .margin({top:0, right:0, bottom:0, left:0})
                 .donut(true)
                 .donutRatio(0.35)
@@ -49,15 +49,15 @@ Utilisation.init = function() {
             pieChart
               .tooltip
                 .valueFormatter(r.format);
-            nv.utils.windowResize(function() { pieChart.update() });
+            nv.utils.windowResize(function() { pieChart.update(); });
             pieCharts.push(pieChart);
             return pieChart;
-        }, function() { chartReady() });
+        }, function() { chartReady(); });
     });
     nv.addGraph(function() {
         lineChart = nv.models.lineWithFocusChart();
         lineChart.x2Axis
-            .tickFormat(function(d) { return d3.time.format('%b %y')(new Date(d)) });
+            .tickFormat(function(d) { return d3.time.format('%b %y')(new Date(d)); });
 
         // set radioButtonMode, so only one series can be selected at a time
         // when the chart is actually called, the first series will be manually selected
@@ -72,12 +72,12 @@ Utilisation.init = function() {
             var ms = b.extent[1] - b.extent[0];
             var msCutoff = 3600*24*30*1000*3; // cutoff between "day/month" and "month/year" tick formats
             lineChart.xAxis
-                .tickFormat(function(d) { return d3.time.format(ms < msCutoff ? '%e %b' : '%b %y')(new Date(d)) });
+                .tickFormat(function(d) { return d3.time.format(ms < msCutoff ? '%e %b' : '%b %y')(new Date(d)); });
         });
 
-        nv.utils.windowResize(function() { lineChart.update() });
+        nv.utils.windowResize(function() { lineChart.update(); });
         return lineChart;
-    }, function() { chartReady() });
+    }, function() { chartReady(); });
 
     var chartsReady = 0; // running count of how many charts have been generated
     var chartReady = function() {
@@ -103,7 +103,7 @@ Utilisation.init = function() {
             dep : ['metadata'],
             fun : footer,
         });
-    }
+    };
 };
 
 var live = function(sel, data) {
@@ -111,7 +111,7 @@ var live = function(sel, data) {
     var instance = data['instance?active=1'];
     var volume = data['volume?active=1'];
     var project = data['project?personal=0'];
-    var hypervisor = data['hypervisor'];
+    var hypervisor = data.hypervisor;
     var s = d3.select(sel);
 
     // prepare some data for filtering by AZ
@@ -135,8 +135,8 @@ var live = function(sel, data) {
     instance = instance.filter(function(i) {
         var trimmed = i.hypervisor;
         if(trimmed === null) return false; // ignore instances with no hypervisor, because these are never scheduled and never used any resources
-        var i = trimmed.indexOf('.');
-        if(i !== -1) trimmed = trimmed.substr(0, i);
+        var idx = trimmed.indexOf('.');
+        if(idx !== -1) trimmed = trimmed.substr(0, idx);
         if(trimmed in hypByHostname) {
             return hypByHostname[trimmed].availability_zone.indexOf(az) === 0;
         } else {
@@ -144,9 +144,9 @@ var live = function(sel, data) {
             return false;
         }
     });
-    volume = volume.filter(function(v) { return v.availability_zone.indexOf(az) === 0 });
+    volume = volume.filter(function(v) { return v.availability_zone.indexOf(az) === 0; });
     project = project; // don't need to filter here, since "empty" projects don't get shown on pie chart anyway
-    hypervisor = hypervisor.filter(function(h) { return h.availability_zone.indexOf(az) === 0 });
+    hypervisor = hypervisor.filter(function(h) { return h.availability_zone.indexOf(az) === 0; });
 
     // function for reducing over array of instances, extracting what we want to plot
     var agg = function(val, instance) {
@@ -187,11 +187,11 @@ var live = function(sel, data) {
     });
 
     // sort ascending by first resource (vcpus)
-    activeResources.sort(function(a, b) { return b[resources[0].key] - a[resources[0].key] });
+    activeResources.sort(function(a, b) { return b[resources[0].key] - a[resources[0].key]; });
 
     // sum each project's volume storage
     activeResources.forEach(function(res) {
-        res.volume_storage = d3.sum(volume.filter(function(v) { return po[v.project_id] === res.key }), function(v) { return v.size });
+        res.volume_storage = d3.sum(volume.filter(function(v) { return po[v.project_id] === res.key; }), function(v) { return v.size; });
     });
 
     // calculate "used/unused" data
@@ -200,16 +200,16 @@ var live = function(sel, data) {
         return res.hv ? d3.sum(hypervisor, res.hv) : undefined;
     });
     resources.forEach(function(res, i) {
-        used[res.key] = d3.sum(activeResources, function(red) { return red[res.key] });
+        used[res.key] = d3.sum(activeResources, function(red) { return red[res.key]; });
         unused[res.key] = capacity[i] ? capacity[i] - used[res.key] : null;
     });
     var totalResources = [used, unused];
-    var overcommit = resources.some(function(r) { return unused[r.key] < 0 });
+    var overcommit = resources.some(function(r) { return unused[r.key] < 0; });
 
     // bind pie chart click events
     var zoom = Object.freeze({'total':0, 'organisation':1, 'project':2}); // enum for granularity of pie chart
-    var mode = pieCharts.map(function() { return zoom.total }); // current zoom level for each pie chart
-    pieCharts.forEach(function(chart, i) {
+    var mode = pieCharts.map(function() { return zoom.total; }); // current zoom level for each pie chart
+    pieCharts.forEach(function(chart) {
         chart.pie.dispatch.on('elementClick', function(d) {
             if(mode[0] === zoom.total && d.index !== 0) return; // can't click on "Unused" segment
             if(mode[0] === zoom.organisation && d.data.key === '__undefined') return; // don't zoom in on "Personal Trial" pseudo-organisation
@@ -236,8 +236,8 @@ var live = function(sel, data) {
     var updateChart = function(i, extra) {
         if(i === undefined) {
             // if no chart index specified, call for every chart
-            for(var i=0; i<resources.length; i++) {
-                updateChart(i);
+            for(var j=0; j<resources.length; j++) {
+                updateChart(j, extra);
             }
             return;
         }
@@ -258,7 +258,7 @@ var live = function(sel, data) {
             if(org === '__null') org = null; // need to reverse-map "No organisation" key (this is hacky)
 
             // get array of all projects associated with this org
-            var projects = project.filter(function(p) { return p.organisation === org });
+            var projects = project.filter(function(p) { return p.organisation === org; });
 
             // construct data array
             var pdata;
@@ -268,15 +268,15 @@ var live = function(sel, data) {
                         key            : p.id,
                         label          : p.display_name,
                         volume_storage : d3.sum(
-                                             volume.filter(function(v) { return v.project_id === p.id }),
-                                             function(v) { return v.size }
+                                             volume.filter(function(v) { return v.project_id === p.id; }),
+                                             function(v) { return v.size; }
                                          )
                     };
                 });
             } else {
                 pdata = projects.map(function(p) {
                     return oi[extra] // array of all instances associated with org
-                        .filter(function(ins) { return ins.project_id === p.id })
+                        .filter(function(ins) { return ins.project_id === p.id; })
                         .reduce(agg, {key:p.id, label:p.display_name, vcpus:0, memory:0, local_storage:0});
                 });
 
@@ -284,13 +284,13 @@ var live = function(sel, data) {
                 if(!projectOrder) {
                     projectOrder = {};
                     pdata
-                        .sort(function(a, b) { return b[resources[0].key] - a[resources[0].key] })
-                        .forEach(function(p, i) { projectOrder[p.key] = i });
+                        .sort(function(a, b) { return b[resources[0].key] - a[resources[0].key]; })
+                        .forEach(function(p, i) { projectOrder[p.key] = i; });
                 }
             }
 
             // sorting by resources[i].key would make every graph individually sorted, but make colours inconsistent
-            container.datum(pdata.sort(function(a, b) { return projectOrder[a.key] - projectOrder[b.key] }));
+            container.datum(pdata.sort(function(a, b) { return projectOrder[a.key] - projectOrder[b.key]; }));
         }
 
         // redraw
@@ -315,7 +315,7 @@ var live = function(sel, data) {
                 // clicking on any institution's segment will do something
                 pieCharts[i].growOnHover(true);
             }
-            d3.selectAll('.live .nvd3-svg').selectAll('.nv-slice').classed('hover', function(d, i) { return i===sliceIdx });
+            d3.selectAll('.live .nvd3-svg').selectAll('.nv-slice').classed('hover', function(d, i) { return i===sliceIdx; });
             slice.on('_mouseover').bind(this, d, sliceIdx)();
         });
         slice.on('mouseout', function(d, sliceIdx) {
@@ -324,7 +324,7 @@ var live = function(sel, data) {
         });
 
         // show/hide additional explanation messages
-        s.select('.overcommit').style('display', mode.some(function(m) { return m === zoom.total }) && overcommit ? 'inline' : 'none');
+        s.select('.overcommit').style('display', mode.some(function(m) { return m === zoom.total; }) && overcommit ? 'inline' : 'none');
     };
     updateChart();
 };
@@ -338,10 +338,10 @@ var historical = function(sel, data) {
     if(!h) return;
 
     // reorganise data for nvd3, which expects values to be an array of objects with x,y keys (goodbye efficiency)
-    var rearranged = resources.filter(function(r) { return r.hist }).map(function(res) {
+    var rearranged = resources.filter(function(r) { return r.hist; }).map(function(res) {
         return {
             key    : res.label,
-            values : h.map(function(row) { return {x:Date.parse(row.day), y:row[res.key]} }),
+            values : h.map(function(row) { return {x:Date.parse(row.day), y:row[res.key]}; }),
         };
     });
 
@@ -362,13 +362,13 @@ var footer = function(sel, data) {
         var i = qk.indexOf('?'); // remove any query parameters from table names
         return i === -1 ? qk : qk.substring(0, i);
     });
-    var md = data.metadata.filter(function(m) { return tables.indexOf(m.table_name) >= 0 });
+    var md = data.metadata.filter(function(m) { return tables.indexOf(m.table_name) >= 0; });
 
     // convert oldest timestamp from milliseconds to seconds
-    var t = d3.min(md, function(m) { return Date.parse(m.last_update) }) * 0.001;
+    var t = d3.min(md, function(m) { return Date.parse(m.last_update); }) * 0.001;
 
     // pretty print
-    var s = d3.select(sel).select('.date').text(humanize.relativeTime(t));
+    d3.select(sel).select('.date').text(humanize.relativeTime(t));
 };
 
 })();

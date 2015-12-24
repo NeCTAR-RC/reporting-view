@@ -20,8 +20,9 @@ globals:
   d3: false
   Util: true
   nv: false
-  Formatters: true
-  Pikaday: true
+  Formatters: true 
+  Pikaday: true 
   Config: true
   Charts: true
   Fetcher: true
+  humanize: true
