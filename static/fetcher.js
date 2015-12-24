@@ -15,6 +15,7 @@
  *
  *  This could be more elegantly done with promises.
  */
+/* exported Fetcher */
 function Fetcher(ep, token, on401) { // "unauthorised" gets special mention because it is a status we always handle the same way (namely, asking user to re-authenticate, assuming token has expired)
     var endpoint = ep; // reporting-api base url
     var queue = []; // list of objects with keys: qks, success, error
@@ -30,9 +31,9 @@ function Fetcher(ep, token, on401) { // "unauthorised" gets special mention beca
         });
 
         // concat all dependency query keys, then filter out duplicates (topsort would be too cool)
-        var qks = queue.reduce(function(val, q) { return val.concat(q.qks) }, []);
-        qks = qks.filter(function(qk, i) { return qks.indexOf(qk) === i });
-        qks.forEach(function(qk, i) {
+        var qks = queue.reduce(function(val, q) { return val.concat(q.qks); }, []);
+        qks = qks.filter(function(qk, i) { return qks.indexOf(qk) === i; });
+        qks.forEach(function(qk) {
             sqldump(
                 endpoint,
                 qk,
@@ -41,7 +42,7 @@ function Fetcher(ep, token, on401) { // "unauthorised" gets special mention beca
 
                     // check if any items in queue now have all necessary data loaded
                     queue.forEach(function(q) {
-                        if(!q.done && q.qks.every(function(qk) { return qk in data })) {
+                        if(!q.done && q.qks.every(function(qk) { return qk in data; })) {
                             q.done = true;
                             q.deps = {};
                             q.qks.forEach(function(qk) {
@@ -55,14 +56,14 @@ function Fetcher(ep, token, on401) { // "unauthorised" gets special mention beca
                     if(error.status === 401) on401();
                     console.log('Error (%i %s) for query "%s"', error.status, error.statusText, qk);
                     queue.forEach(function(q) {
-                        if(q.qks.some(function(q_qk) { return q_qk === qk })) {
+                        if(q.qks.some(function(q_qk) { return q_qk === qk; })) {
                             q.error();
                         }
                     });
                 }
             );
         });
-    };
+    }
 
     /// enqueue an object with properties:
     ///   qks     : list of qk (query key) to be fetched

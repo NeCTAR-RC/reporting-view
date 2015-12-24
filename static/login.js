@@ -13,7 +13,7 @@
 
         // hook up forms
         $('form.aaf').attr('action', 'https://accounts.rc.nectar.org.au/rcshibboleth?return-path='+encodeURIComponent(Config.baseURL));
-        $('form.manual').on('submit', function() { getToken(); return false });
+        $('form.manual').on('submit', function() { getToken(); return false; });
         var message = sessionStorage.getItem(Util.flashKey);
         if(message) {
             $('.instructions').prepend('<p>'+message+'</p>');
@@ -23,7 +23,7 @@
 
     var keystone;
 
-    var onAuthenticated = function(catalog) {
+    var onAuthenticated = function() {
         // clean up any error messages that might be left over
         $('.manual').removeClass('error');
         $('.manual p.message').html('');
@@ -48,13 +48,13 @@
 
         var magic = 'a';
         if($('#username').val() === magic) {
-            keystone = {getToken : function() { return magic }};
+            keystone = {getToken : function() { return magic; }};
             onAuthenticated();
         } else {
             onError('Unauthorised');
         }
-        return;
 
+        /* this code should be used again once authentication actually works...
         // constructing Keystone instance can throw (e.g. on empty authURL); need to catch that here
         try {
             keystone = new osclient.Keystone({
@@ -76,6 +76,7 @@
                 onError(error);
             }
         );
+        */
     };
 
     var redirect = function() {

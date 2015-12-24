@@ -25,3 +25,4 @@ globals:
   Config: true
   Charts: true
   Fetcher: true
+  humanize: true

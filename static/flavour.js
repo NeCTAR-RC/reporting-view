@@ -8,29 +8,29 @@ var dispatch = d3.dispatch('flavChanged');
 var res = [
     {
         key : 'vcpus',
-        format : function(u) { return u },
+        format : function(u) { return u; },
         accessor : {
-            instance   : function(ins) { return +ins.vcpus },
-            hypervisor : function(hyp) { return +hyp.cpus },
-            flavour    : function(fla) { return +fla.vcpus },
+            instance   : function(ins) { return +ins.vcpus; },
+            hypervisor : function(hyp) { return +hyp.cpus; },
+            flavour    : function(fla) { return +fla.vcpus; },
         },
     },
     {
         key : 'memory',
-        format : function(d) { return Formatters.si_bytes(d*1024*1024) },
+        format : function(d) { return Formatters.si_bytes(d*1024*1024); },
         accessor : {
-            instance   : function(ins) { return +ins.memory },
-            hypervisor : function(hyp) { return +hyp.memory },
-            flavour    : function(fla) { return +fla.memory },
+            instance   : function(ins) { return +ins.memory; },
+            hypervisor : function(hyp) { return +hyp.memory; },
+            flavour    : function(fla) { return +fla.memory; },
         },
     },
     {
         key : 'disk',
-        format : function(d) { return Formatters.si_bytes(d*1024*1024*1024) },
+        format : function(d) { return Formatters.si_bytes(d*1024*1024*1024); },
         accessor : {
-            instance   : function(ins) { return (+ins.root) + (+ins.ephemeral) },
-            hypervisor : function(hyp) { return +hyp.local_storage },
-            flavour    : function(fla) { return (+fla.root) + (+fla.ephemeral) },
+            instance   : function(ins) { return (+ins.root) + (+ins.ephemeral); },
+            hypervisor : function(hyp) { return +hyp.local_storage; },
+            flavour    : function(fla) { return (+fla.root) + (+fla.ephemeral); },
         },
     },
 ];
@@ -60,16 +60,16 @@ function report_flavs(sel, g) {
     var s = d3.select(sel);
 
     var slct = s.select('select.flavours') // "select" is a word overused yet reserved
-        .on('change', function() { var fid = this.value; dispatch.flavChanged(sel, g.flavour.find(function(f){ return f.id==fid })); });
+        .on('change', function() { var fid = this.value; dispatch.flavChanged(sel, g.flavour.find(function(f){ return f.id==fid; })); });
     var makeSelect = function() {
         // show just m2 range, or all?
         var flavs;
         if(s.select('.allflav input').property('checked')) {
-            flavs = flavour.filter(function() { return true }); // shallow copy for sorting
-            flavs.sort(function(a, b) { return a.name < b.name ? -1 : a.name > b.name ? 1 : 0 }); // sort lexicographically
+            flavs = flavour.filter(function() { return true; }); // shallow copy for sorting
+            flavs.sort(function(a, b) { return a.name < b.name ? -1 : a.name > b.name ? 1 : 0; }); // sort lexicographically
         } else {
-            flavs = flavour.filter(function(f) { return f.name.indexOf('m2.')===0 });
-            flavs.sort(function(a, b) { return a.vcpus - b.vcpus }); // sort by vcpus
+            flavs = flavour.filter(function(f) { return f.name.indexOf('m2.')===0; });
+            flavs.sort(function(a, b) { return a.vcpus - b.vcpus; }); // sort by vcpus
         }
 
         // remove any old placeholders before doing data join
@@ -106,7 +106,7 @@ function report_flavs(sel, g) {
     dispatch.on('flavChanged.'+sel, function(sel, f) {
         var data = [];
         if(f) {
-            data = res.map(function(r) { return r.accessor.flavour(f) });
+            data = res.map(function(r) { return r.accessor.flavour(f); });
             slct.property('value', f.id);
         } else {
             slct.property('value', ''); // select hidden 'Select flavour...' placeholder
@@ -116,7 +116,7 @@ function report_flavs(sel, g) {
         span
             .html(function(d, i) { return '<span title="'+res[i].key+'">'+res[i].format(d)+'</span>'; });
         span.transition()
-            .style('height', function(d, i) { return sumScale[i](d)+'px' });
+            .style('height', function(d, i) { return sumScale[i](d)+'px'; });
         span.exit().transition().style('height', '0px').remove();
     });
 }
@@ -129,7 +129,7 @@ function report_list(sel, g) {
 
     // filter by availability zone
     var az = localStorage.getItem(Util.nodeKey);
-    hypervisor = hypervisor.filter(function(h) { return h.availability_zone.indexOf(az) === 0 });
+    hypervisor = hypervisor.filter(function(h) { return h.availability_zone.indexOf(az) === 0; });
     // (don't really need to filter instance; won't show any instances belonging to filtered-out hypervisors)
 
     // make shallow copy of hypervisor array, with additional:
@@ -155,7 +155,7 @@ function report_list(sel, g) {
             trimmed[ret._trimmed] = true;
 
             // will keep running count of resources allocated
-            ret._allocated = res.map(function() { return 0 });
+            ret._allocated = res.map(function() { return 0; });
 
             return ret;
         });
@@ -168,7 +168,7 @@ function report_list(sel, g) {
         var trimmed = ins.hypervisor;
         var i = trimmed.indexOf('.');
         if(i > -1) trimmed = trimmed.substr(0, i);
-        var hyp = data.find(function(h) { return h._trimmed === trimmed })
+        var hyp = data.find(function(h) { return h._trimmed === trimmed; });
         if(hyp) {
             res.forEach(function(r, i) {
                 hyp._allocated[i] += r.accessor.instance(ins);
@@ -179,11 +179,11 @@ function report_list(sel, g) {
     // sortAccessor elements must be ordered matching DOM order (dom elements must have class "th")
     var sortIdx = 0, sortOrder = d3.descending;
     var sortAccessor = [
-        function(d) { return +d._capacity },
-        function(d) { return d.hostname },
+        function(d) { return +d._capacity; },
+        function(d) { return d.hostname; },
     ];
     res.forEach(function(r, i) {
-        sortAccessor.push(function(d) { return +d._allocated[i] });
+        sortAccessor.push(function(d) { return +d._allocated[i]; });
     });
 
     var rowHeight = 30; //px, has to match some stuff in flavour.css
@@ -196,11 +196,11 @@ function report_list(sel, g) {
     row.enter()
       .append('div')
         .attr('class', 'hypervisor')
-        .on('mouseover', function() { d3.select(this).classed('selected', true) })
-        .on('mouseout',  function() { d3.select(this).classed('selected', false) });
+        .on('mouseover', function() { d3.select(this).classed('selected', true); })
+        .on('mouseout',  function() { d3.select(this).classed('selected', false); });
     row
-        .html(function(d) { return '<span class="capacity"></span><span class="hostname" title="'+d.hostname+'">'+d.hostname+'</span>' })
-        .style('top', function(_, i) { return i*rowHeight+'px' });
+        .html(function(d) { return '<span class="capacity"></span><span class="hostname" title="'+d.hostname+'">'+d.hostname+'</span>'; })
+        .style('top', function(_, i) { return i*rowHeight+'px'; });
     row.exit().remove();
 
     var resources = row.append('div')
@@ -209,12 +209,12 @@ function report_list(sel, g) {
     s.selectAll('.controls span');
     var h = header.selectAll('div').data(res);
     h.enter().append('div')
-        .attr('class', function(d) { return 'th ' + d.key })
-        .html(function(d) { return d.key });
+        .attr('class', function(d) { return 'th ' + d.key; })
+        .html(function(d) { return d.key; });
 
     // bind column sorting
     var th = s.selectAll('.th');
-    th.on('click', function(_, i) { sortBy(i) });
+    th.on('click', function(_, i) { sortBy(i); });
 
     // add columns for resources
     res.forEach(function(r, i) {
@@ -223,9 +223,9 @@ function report_list(sel, g) {
           .append('div')
             .attr('class', 'bar')
           .append('div')
-            .html(function(d) { return r.format(d._allocated[i])+' / '+r.format(r.accessor.hypervisor(d)) })
-            .style('width', function(d) { return d._allocated[i]/r.accessor.hypervisor(d)*100+'%' }) // could use a d3 scale for this, but can't be bothered
-            .attr('class', function(d) { return d._allocated[i] > r.accessor.hypervisor(d) ? 'oversubscribed' : '' });
+            .html(function(d) { return r.format(d._allocated[i])+' / '+r.format(r.accessor.hypervisor(d)); })
+            .style('width', function(d) { return d._allocated[i]/r.accessor.hypervisor(d)*100+'%'; }) // could use a d3 scale for this, but can't be bothered
+            .attr('class', function(d) { return d._allocated[i] > r.accessor.hypervisor(d) ? 'oversubscribed' : ''; });
     });
 
     // sort rows according to sortAccessor[i]
@@ -235,17 +235,17 @@ function report_list(sel, g) {
         sortIdx = i;
 
         // apply classes to draw sort direction arrow
-        th.classed('ascending', function(_, i) { return i === sortIdx && sortOrder === d3.ascending });
-        th.classed('descending', function(_, i) { return i === sortIdx && sortOrder === d3.descending });
+        th.classed('ascending', function(_, i) { return i === sortIdx && sortOrder === d3.ascending; });
+        th.classed('descending', function(_, i) { return i === sortIdx && sortOrder === d3.descending; });
 
         var sa = sortAccessor[sortIdx];
         data
             .sort(function(a, b) { return sortOrder(sa(a), sa(b)); })
-            .forEach(function(d, i) { d.index = i });
+            .forEach(function(d, i) { d.index = i; });
 
         // rearrange rows
         row.transition()
-            .style('top', function(d) { return d.index*rowHeight+'px' });
+            .style('top', function(d) { return d.index*rowHeight+'px'; });
     };
 
     dispatch.on('flavChanged.'+sel, function(sel, f) {
@@ -289,13 +289,13 @@ var footer = function(sel, data) {
         var i = qk.indexOf('?'); // remove any query parameters from table names
         return i === -1 ? qk : qk.substring(0, i);
     });
-    var md = data.metadata.filter(function(m) { return tables.indexOf(m.table_name) >= 0 });
+    var md = data.metadata.filter(function(m) { return tables.indexOf(m.table_name) >= 0; });
 
     // convert oldest timestamp from milliseconds to seconds
-    var t = d3.min(md, function(m) { return Date.parse(m.last_update) }) * 0.001;
+    var t = d3.min(md, function(m) { return Date.parse(m.last_update); }) * 0.001;
 
     // pretty print
-    var s = d3.select(sel).select('.date').text(humanize.relativeTime(t));
+    d3.select(sel).select('.date').text(humanize.relativeTime(t));
 };
 
 })();

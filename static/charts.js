@@ -12,8 +12,8 @@ var Charts = {};
     Charts.pie = function() {
         var width     = 300,
             height    = 300,
-            keyFn     = function(d) { return d[0] }, /// accessor into data
-            valFn     = function(d) { return d[1] }, /// accessor into data
+            keyFn     = function(d) { return d[0]; }, /// accessor into data
+            valFn     = function(d) { return d[1]; }, /// accessor into data
             tipFn     = keyFn,                       /// formatter for human-readable titles
             color     = d3.scale.category20(),
             layout    = d3.layout.pie().sort(null),
@@ -23,7 +23,7 @@ var Charts = {};
             tip       = d3.tip()
                             .attr('class', 'd3-tip')
                             .direction(pie_tip_direction)
-                            .html(function(d) { return tipFn(d.data) });
+                            .html(function(d) { return tipFn(d.data); });
 
         /// draw a pie chart given selection
         function pie(selection) {
@@ -36,7 +36,7 @@ var Charts = {};
                 var svgEnter = svg.enter().append('svg');
                 var gEnter = svgEnter.append('g')
                     .attr('class', 'wrapper');
-                var hEnter = gEnter.append('g')
+                gEnter.append('g')
                     .attr('class', 'handles');
                 var g = svg.select('g.wrapper');
                 var h = svg.select('g.handles');
@@ -56,19 +56,19 @@ var Charts = {};
                 hand.enter().append('circle')
                     .attr('r', 1); // r=0 gets drawn at (0,0) in firefox, so can't be used as anchor
                 hand
-                    .attr('cx', function(d) { return pie_tip_x(arc.outerRadius()(d), d) })
-                    .attr('cy', function(d) { return pie_tip_y(arc.outerRadius()(d), d) });
+                    .attr('cx', function(d) { return pie_tip_x(arc.outerRadius()(d), d); })
+                    .attr('cy', function(d) { return pie_tip_y(arc.outerRadius()(d), d); });
                 hand.exit().remove();
 
                 // make pie slices
                 var path = g.selectAll('path').data(layout);
                 path.enter().append('path')
-                    .attr('fill', function(d, i) { return color(i) })
-                    .on('click', function(d, i) { dispatch.click(d.data, i) })
-                    .each(function(d) { this._current = d }); // store initial angles
+                    .attr('fill', function(d, i) { return color(i); })
+                    .on('click', function(d, i) { dispatch.click(d.data, i); })
+                    .each(function(d) { this._current = d; }); // store initial angles
                 path
-                    .attr('class', typeof pathClass === 'function' ? function(d) { return pathClass(d.data) } : pathClass )
-                    .on('mouseover', function(d, i) { tip.show(d, hand[0][i]) }) // ensure that if tipFn is updated, the new version gets re-bound here
+                    .attr('class', typeof pathClass === 'function' ? function(d) { return pathClass(d.data); } : pathClass )
+                    .on('mouseover', function(d, i) { tip.show(d, hand[0][i]); }) // ensure that if tipFn is updated, the new version gets re-bound here
                     .on('mouseout', tip.hide);
                 path.transition()
                     .attrTween('d', arcTween(arc));
@@ -124,10 +124,10 @@ var Charts = {};
          */
         var pie_tip_x = function(r, d) {
             return -r * Math.cos(-0.5*Math.PI - 0.5*(d.startAngle+d.endAngle));
-        }
+        };
         var pie_tip_y = function(r, d) {
             return  r * Math.sin(-0.5*Math.PI - 0.5*(d.startAngle+d.endAngle));
-        }
+        };
 
         /* make tooltips perpendicular to circle, i.e. if an arc's (mean) angle is
          * in [pi/4, 3pi/4] (using d3's left-handed, "12 o'clock is zero" convention)
@@ -142,7 +142,7 @@ var Charts = {};
         }
 
         return pie;
-    }
+    };
 
     Charts.progress = function() {
         var min = 0, /// actually not customisable, because progress is displayed as "val/max" which is confusing if min != 0
@@ -150,7 +150,7 @@ var Charts = {};
             val = 0;
 
         function progress(selection) {
-            selection.each(function(data) {
+            selection.each(function() {
                 var container = d3.select(this);
 
                 var x = d3.scale.linear().range(['0%', '100%']).domain([min, max]);
@@ -195,18 +195,17 @@ var Charts = {};
             width      = 840, /// both charts have same width; margins are extra
             heightZoom = 300, /// "zoom" chart shows a subset of domain
             heightDate = 60,  /// "date" charts shows complete domain
-            xFn        = function(d) { return d.time }, /// accessor for horizontal domain
-            yDateFn    = function(d) { return d.count }, /// accessor for vertical domain
-            yZoomFn    = function(d) { return d.vcpus }, /// accessor for vertical domain
+            xFn        = function(d) { return d.time; }, /// accessor for horizontal domain
+            yDateFn    = function(d) { return d.count; }, /// accessor for vertical domain
+            yZoomFn    = function(d) { return d.vcpus; }, /// accessor for vertical domain
             tickFormat = d3.format('d'), /// for zoom chart's vertical axis
-            dispatch   = d3.dispatch('brushend'),
             pointClass = null,
             dispatch   = d3.dispatch('zoom', 'highlight'),
             domain     = null, /// for zoom chart x axis; null means full extent
             tip        = d3.tip()
                              .attr('class', 'd3-tip')
                              .offset([-10,0])
-                             .html(function(d) { return yZoomFn(d) });
+                             .html(function(d) { return yZoomFn(d); });
 
         function zoom(selection) {
             selection.each(function(data) {
@@ -215,7 +214,7 @@ var Charts = {};
                 var yDate = d3.scale.linear().range([heightDate, 0]).domain(d3.extent(data, yDateFn));
                 var xAxisDate = d3.svg.axis().scale(xDate).orient('bottom');
                 var yAxisDate = d3.svg.axis().scale(yDate).orient('left').ticks(0); // no ticks because the y scale is meant to be qualitative
-                var brushDate = d3.svg.brush().x(xDate).on('brushend', function() { dispatch.zoom(brushDate.empty() ? null : brushDate.extent()) });
+                var brushDate = d3.svg.brush().x(xDate).on('brushend', function() { dispatch.zoom(brushDate.empty() ? null : brushDate.extent()); });
                 if(domain) brushDate.extent(domain);
 
                 // zoom chart elements (could be optimised similarly to as described above)
@@ -223,12 +222,12 @@ var Charts = {};
                 var yZoom = d3.scale.linear().range([heightZoom, 0]).domain(d3.extent(data, yZoomFn));
                 var xAxisZoom = d3.svg.axis().scale(xZoom).orient('bottom');
                 var yAxisZoom = d3.svg.axis().scale(yZoom).orient('left').tickFormat(tickFormat);
-                var brushZoom = d3.svg.brush().x(xZoom).on('brushend', function() { dispatch.zoom(brushZoom.empty() ? null : brushZoom.extent()) });
+                var brushZoom = d3.svg.brush().x(xZoom).on('brushend', function() { dispatch.zoom(brushZoom.empty() ? null : brushZoom.extent()); });
 
                 // line functions
-                var lineDate = d3.svg.line().interpolate('step-after').x(function(d) { return xDate(xFn(d)) }).y(function(d) { return yDate(yDateFn(d)) });
-                var areaDate = d3.svg.area().interpolate('step-after').x(function(d) { return xDate(xFn(d)) }).y0(heightDate).y1(function(d) { return yDate(yDateFn(d)) });
-                var lineZoom = d3.svg.line().interpolate('step-after').x(function(d) { return xZoom(xFn(d)) }).y(function(d) { return yZoom(yZoomFn(d)) });
+                var lineDate = d3.svg.line().interpolate('step-after').x(function(d) { return xDate(xFn(d)); }).y(function(d) { return yDate(yDateFn(d)); });
+                var areaDate = d3.svg.area().interpolate('step-after').x(function(d) { return xDate(xFn(d)); }).y0(heightDate).y1(function(d) { return yDate(yDateFn(d)); });
+                var lineZoom = d3.svg.line().interpolate('step-after').x(function(d) { return xZoom(xFn(d)); }).y(function(d) { return yZoom(yZoomFn(d)); });
 
                 // make sure svg elements are initialised; structure is:
                 //  <svg>
@@ -309,7 +308,7 @@ var Charts = {};
                 gDate.select('path.area').datum(data).attr('d', areaDate);
                 gDate.selectAll('.x.axis .tick > text').on('click', function(d) { // don't know if there's a more elegant way to do this
                     var e = d3.time.month.offset(d, 1); // one month later
-                    if(e > xDate.domain()[1]) e = date_x.domain()[1]; // need to clamp manually
+                    if(e > xDate.domain()[1]) e = xDate.domain()[1]; // need to clamp manually
                     dispatch.zoom([d,e]);
                 });
 
@@ -322,8 +321,8 @@ var Charts = {};
                     .on('mouseout', tip.hide);
                 circ
                     .on('mouseover', function(d, i) { tip.show(data[i], this); })
-                    .attr('cx', function(d) { return xZoom(xFn(d)) })
-                    .attr('cy', function(d) { return yZoom(yZoomFn(d)) });
+                    .attr('cx', function(d) { return xZoom(xFn(d)); })
+                    .attr('cy', function(d) { return yZoom(yZoomFn(d)); });
                 circ.exit().remove();
 
                 // change domain of zoom chart to extent (show full domain for null extent)
@@ -361,8 +360,8 @@ var Charts = {};
                     gZoom.select('.y.axis').transition().call(yAxisZoom);
                     gZoom.select('path.line').transition().attr('d', lineZoom);
                     circ.transition()
-                        .attr('cx', function(d) { return xZoom(xFn(d)) })
-                        .attr('cy', function(d) { return yZoom(yZoomFn(d)) });
+                        .attr('cx', function(d) { return xZoom(xFn(d)); })
+                        .attr('cy', function(d) { return yZoom(yZoomFn(d)); });
 
                     // store zoomed domain to remember it when redrawing
                     domain = extent;
@@ -420,7 +419,7 @@ var Charts = {};
         zoom.dispatch = dispatch;
 
         return zoom;
-    }
+    };
 
     Charts.table = function() {
         /**
@@ -443,8 +442,8 @@ var Charts = {};
             var makeTable = function(tbl, dataUnsorted) {
                 // make shallow copy of data, for sorting without altering original
                 var data = dataUnsorted
-                    .map(function(d) { return d })
-                    .sort(function(a, b) { return sortOrder(cols[sortIdx].fn(a), cols[sortIdx].fn(b)) });
+                    .map(function(d) { return d; })
+                    .sort(function(a, b) { return sortOrder(cols[sortIdx].fn(a), cols[sortIdx].fn(b)); });
 
                 // set up <thead>
                 var thead = tbl.selectAll('thead').data([data]);
@@ -461,9 +460,9 @@ var Charts = {};
                         }
                         makeTable(tbl, dataUnsorted); // redraw table
                      })
-                    .attr('title', function(d) { return d.desc })
-                    .attr('class', function(d, i) { return (i === sortIdx ? (sortOrder === d3.descending ? 'descending' : 'ascending') : '') + (d.cl ? ' '+d.cl : '') })
-                    .html(function(d) { return d.title });
+                    .attr('title', function(d) { return d.desc; })
+                    .attr('class', function(d, i) { return (i === sortIdx ? (sortOrder === d3.descending ? 'descending' : 'ascending') : '') + (d.cl ? ' '+d.cl : ''); })
+                    .html(function(d) { return d.title; });
 
                 // <tfoot>
                 var tfoot = tbl.selectAll('tfoot').data([data]);
@@ -471,8 +470,8 @@ var Charts = {};
                 var tf = tfoot.select('tr').selectAll('td').data(cols);
                 tf.enter().append('td');
                 tf
-                    .attr('class', function(d) { return d.cl })
-                    .html(function(d) { return d.agg ? (d.format || String)(d.agg(data)) : null });
+                    .attr('class', function(d) { return d.cl; })
+                    .html(function(d) { return d.agg ? (d.format || String)(d.agg(data)) : null; });
 
                 // <tbody>
                 var tbody = tbl.selectAll('tbody').data([data]);
@@ -495,13 +494,13 @@ var Charts = {};
                     });
                 });
                 td.enter().append('td');
-                td.html(function(d) { return d.html });
-                td.attr('class', function(d) { return d.cl });
+                td.html(function(d) { return d.html; });
+                td.attr('class', function(d) { return d.cl; });
                 td.exit().remove();
             };
 
-            selection.each(function(data) { makeTable(d3.select(this), data) });
-        };
+            selection.each(function(data) { makeTable(d3.select(this), data); });
+        }
 
         table.cols = function(_) {
             if(!arguments.length) return cols;
@@ -526,5 +525,5 @@ var Charts = {};
         };
 
         return table;
-    }
+    };
 })();
