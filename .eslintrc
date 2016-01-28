@@ -1,0 +1,27 @@
+# Set up globals
+extends: "eslint:recommended"
+
+# Most environment options are not explicitly enabled or disabled, only
+# included here for completeness' sake. They are commented out, because the
+# global updates.py script would otherwise override them during a global
+# requirements synchronization.
+#
+# Individual projects should choose which platforms they deploy to.
+
+env:
+  browser: true
+  jquery: true
+
+rules:
+  comma-dangle: 0
+  no-console: 0
+
+globals:
+  d3: false
+  Util: true
+  nv: false
+  Formatters: true 
+  Pikaday: true 
+  Config: true
+  Charts: true
+  Fetcher: true
