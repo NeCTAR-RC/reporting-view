@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "bad4c104_e050d760",
+        "filename": ".eslintrc",
+        "patchSetId": 1
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1000077
+      },
+      "writtenOn": "2016-02-09T05:25:56Z",
+      "side": 1,
+      "message": "whitespace",
+      "revId": "e010c52714d962c933568cfd7d570c5708acfd6d",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    }
+  ]
+}
