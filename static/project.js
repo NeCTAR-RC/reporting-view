@@ -392,7 +392,7 @@ var report = function(sel, data) {
                 sTable.DataTable().clear().destroy();
             }
             var dTable = sTable.DataTable({
-                //dom : 'rtp', // show only processing indicator and table
+                dom : 'Bfrtip', // show only processing indicator and table
                 data : instance,
                 processing : true,
                 paging : true,
@@ -446,11 +446,13 @@ var report = function(sel, data) {
                         },
                     },
                     {
+                        title : 'Project ID',
                         data : 'project_id',
                         className : 'project_id', // to identify column for filtering
                         visible : false,
                     },
                     {
+                        title : 'Instance ID',
                         data : 'id',
                         visible : false,
                     },
@@ -459,6 +461,15 @@ var report = function(sel, data) {
                 language : {
                     zeroRecords : 'No matching instances found.',
                 },
+                buttons : [
+                    {
+                        extend : 'csv',
+                        text : 'Download CSV',
+                        exportOptions : {
+                            orthogonal : 'sort',
+                        }
+                    }
+                ],
             });
 
             // add extra event handler for chart zoom, to keep data table synchronised
