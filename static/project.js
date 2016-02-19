@@ -322,6 +322,8 @@ var report = function(sel, data) {
             instance.forEach(function(i) {
                 var ct = Date.parse(i.created),
                     dt = Date.parse(i.deleted);
+                i._c_time = ct; // store these for filtering later
+                i._d_time = dt; // (to avoid recomputing for every row)
                 if(!isNaN(ct)) events.push({time:ct, mult:+1, instance:i});
                 if(!isNaN(dt)) events.push({time:dt, mult:-1, instance:i});
             });
@@ -389,7 +391,7 @@ var report = function(sel, data) {
                 // cannot re-initialise DataTable; have to delete it and start again
                 sTable.DataTable().clear().destroy();
             }
-            sTable.DataTable({
+            var dTable = sTable.DataTable({
                 //dom : 'rtp', // show only processing indicator and table
                 data : instance,
                 processing : true,
@@ -457,6 +459,28 @@ var report = function(sel, data) {
                 language : {
                     zeroRecords : 'No matching instances found.',
                 },
+            });
+
+            // add extra event handler for chart zoom, to keep data table synchronised
+            chart.dispatch.on('zoom.project', function(extent) {
+                // remove existing filter functions
+                var nf = $.fn.dataTable.ext.search.length;
+                for(var i=0; i<nf; i++) {
+                    $.fn.dataTable.ext.search.pop();
+                }
+
+                if(extent) {
+                    // add new filter to show only instances within extent
+                    var e0 = extent[0].getTime(), // extract numeric values
+                        e1 = extent[1].getTime(); // of dates
+                    $.fn.dataTable.ext.search.push(function(settings, data, dataIndex, instance) {
+                        // don't show instance if it was deleted before the time interval, or created after
+                        return !(instance._d_time < e0 || instance._c_time > e1);
+                    });
+                }
+
+                // apply new filters by redrawing
+                dTable.draw();
             });
         };
         var updatePie = function() {
