@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+import os
+import hashlib
 import flask
 from flask import Flask, request, render_template
 
@@ -25,6 +27,20 @@ def report(report):
 @app.errorhandler(404)
 def page_not_found(error):
     return render_template('404.html'), 404
+
+@app.before_request
+def csrf_protect():
+    if request.method == "POST":
+        token = session.pop('_csrf_token', None)
+        if not token or token != request.form.get('_csrf_token'):
+            abort(403)
+
+def generate_csrf_token():
+    if '_csrf_token' not in session:
+        session['_csrf_token'] = hashlib.sha1(os.urandom(64)).hexdigest()
+    return session['_csrf_token']
+
+app.jinja_env.globals['csrf_token'] = generate_csrf_token()
 
 # mod_wsgi needs this
 application = app
