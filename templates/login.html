@@ -44,7 +44,7 @@ location.replace(Config.baseURL + Util.reports[0].url);
 <div class="row">
   <div class="full columns">
     <form method="post" class="aaf">
-      <input type="hidden" name="csrfmiddlewaretoken" value="redundant">
+      <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
       <input type="submit" class="button-primary" value="via AAF">
     </form>
   </div>

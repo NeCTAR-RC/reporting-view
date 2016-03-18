@@ -12,7 +12,7 @@
         }
 
         // hook up forms
-        $('form.aaf').attr('action', 'https://accounts.rc.nectar.org.au/rcshibboleth?return-path='+encodeURIComponent(Config.baseURL));
+        $('form.aaf').attr('action', encodeURIComponent(Config.rcshib_url)+'?return-path='+encodeURIComponent(Config.baseURL));
         $('form.manual').on('submit', function() { getToken(); return false; });
         var message = sessionStorage.getItem(Util.flashKey);
         if(message) {
@@ -55,6 +55,7 @@
         }
 
         /* this code should be used again once authentication actually works...
+         * like now, hopefully */
         // constructing Keystone instance can throw (e.g. on empty authURL); need to catch that here
         try {
             keystone = new osclient.Keystone({
@@ -76,7 +77,7 @@
                 onError(error);
             }
         );
-        */
+        /**/
     };
 
     var redirect = function() {
