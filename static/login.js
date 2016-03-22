@@ -12,7 +12,7 @@
         }
 
         // hook up forms
-        $('form.aaf').attr('action', encodeURIComponent(Config.rcshib_url)+'?return-path='+encodeURIComponent(Config.baseURL));
+        $('form.aaf').attr('action', Config.rcshib_url+'?return-path='+Config.baseURL); // TODO Config.baseURL should be run through encodeURIComponent for safety, but that requires changes to rcshibboleth code to work...
         $('form.manual').on('submit', function() { getToken(); return false; });
         var message = sessionStorage.getItem(Util.flashKey);
         if(message) {
