@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "bad4c104_83d38337",
+        "filename": "reporting_view.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2016-03-22T04:38:19Z",
+      "side": 1,
+      "message": "I don\u0027t think /tmp is a good place for this? Shouldn\u0027t it be in something like /var/lib/reporting_view/?\n\nThe main thing is that this isn\u0027t configurable. Eg. in a production env I would expect that the directory and the secret key would be created by the deb post install.\n\nNot saying this isn\u0027t good as it will work well in dev and will work without having to worry about anything (so maybe the default for /tmp is good). Just maybe in prod it could be different and this doesn\u0027t allow that.",
+      "range": {
+        "startLine": 16,
+        "startChar": 37,
+        "endLine": 16,
+        "endChar": 56
+      },
+      "revId": "f9219b466f341593c058e0460a172e7e367af29a",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "bad4c104_a3d88754",
+        "filename": "reporting_view.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2016-03-22T04:38:19Z",
+      "side": 1,
+      "message": "Also should this be hard coded to debug\u003dTrue? Not in this review but eg. we won\u0027t want debug on in prod",
+      "range": {
+        "startLine": 48,
+        "startChar": 0,
+        "endLine": 48,
+        "endChar": 16
+      },
+      "revId": "f9219b466f341593c058e0460a172e7e367af29a",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    }
+  ]
+}
