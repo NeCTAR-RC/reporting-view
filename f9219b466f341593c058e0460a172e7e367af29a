@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "bad4c104_03e77313",
+        "filename": "reporting_view.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 1000129
+      },
+      "writtenOn": "2016-03-22T04:57:28Z",
+      "side": 1,
+      "message": "The secret key is specifically for maintaining session state across restarts - if it goes away then users will need to log in again, but it\u0027s not something that needs to be statically defined in a config or similar. Regenerating it whenever it\u0027s not available makes more sense to me.\n\nPutting it in /tmp (or somewhere else that will be cleaned up automatically) seems like a good approach, and since it\u0027s not encrypting anything really critical (just the current session state) it doesn\u0027t need to be somewhere highly cryptic. We\u0027re also running as a user that won\u0027t have write permissions on /var/run, which is the other logical place to put it.\n\nI also figure that keeping the server side app as simple as possible, preferably with no configuration at all, is the ideal. The app is doing nothing except handling a few aspects of session management and authentication - I\u0027d rather keep it that way.",
+      "parentUuid": "bad4c104_83d38337",
+      "range": {
+        "startLine": 16,
+        "startChar": 37,
+        "endLine": 16,
+        "endChar": 56
+      },
+      "revId": "f9219b466f341593c058e0460a172e7e367af29a",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "bad4c104_a3d88754",
         "filename": "reporting_view.py",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2016-03-22T04:38:19Z",
       "side": 1,
       "message": "Also should this be hard coded to debug\u003dTrue? Not in this review but eg. we won\u0027t want debug on in prod",
+      "range": {
+        "startLine": 48,
+        "startChar": 0,
+        "endLine": 48,
+        "endChar": 16
+      },
+      "revId": "f9219b466f341593c058e0460a172e7e367af29a",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "bad4c104_83baa3df",
+        "filename": "reporting_view.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1000129
+      },
+      "writtenOn": "2016-03-22T04:57:28Z",
+      "side": 1,
+      "message": "This one\u0027s a valid point ;-)",
+      "parentUuid": "bad4c104_a3d88754",
       "range": {
         "startLine": 48,
         "startChar": 0,
