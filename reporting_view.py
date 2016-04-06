@@ -1,10 +1,42 @@
 #!/usr/bin/env python
 
 import os
+import sys
 import time
 import hashlib
 import flask
 from flask import Flask, request, render_template, session
+from keystoneclient.auth.identity.v3 import Token
+from keystoneclient.session import Session
+from keystoneclient.v3.client import Client
+import ConfigParser
+
+config_path = '/etc/reporting-view/reporting-view.conf'
+config = ConfigParser.ConfigParser()
+if len(config.read(config_path)) == 0:
+    sys.exit('Fatal error: could not read config file "{}"'.format(config_path))
+auth_url = config.get('server', 'auth_url')
+auth_role = config.get('server', 'auth_role')
+
+def get_scoped_token_for_role(role, unscoped_token):
+
+    # get user's projects, using the unscoped token
+    auth     = Token(auth_url=auth_url.replace('v2.0', 'v3'), token=unscoped_token)
+    session  = Session(auth=auth)
+    keystone = Client(session=session)
+    projects = keystone.projects.list(user=session.get_user_id())
+
+    # get scoped Token for each project, and see that contains our role
+    for project in projects:
+        scoped_auth = Token(auth_url   = auth_url.replace('v2.0','v3'),
+                            token      = unscoped_token,
+                            project_id = project.id)
+        scoped_sess = Session(auth = scoped_auth)
+        scoped_auth_ref = scoped_auth.get_auth_ref(scoped_sess)
+        for scoped_role in scoped_auth_ref['roles']:
+            if scoped_role['name'] == role:
+                return scoped_auth_ref['auth_token']
+    return None
 
 class TimeoutException(Exception):
     """Raised when reading a secret key times out.
@@ -13,7 +45,7 @@ class TimeoutException(Exception):
     """
     pass
 
-def get_secret_key(secret_directory='/tmp/reporting_view', secret_file='secret.txt', timeout=5):
+def get_secret_key(secret_directory='/tmp/reporting-view', secret_file='secret.txt', timeout=5):
     """Load secret key from specified path, if it exists, or randomly generate
     one and save it at the path.
 
@@ -47,12 +79,13 @@ def get_secret_key(secret_directory='/tmp/reporting_view', secret_file='secret.t
 app = Flask(__name__)
 app.secret_key = get_secret_key()
 
-@app.route('/')
+@app.route('/', methods=['GET', 'POST'])
 def login():
-    print(request.form)
     token = ""
-    if 'token' in request.form:
-        token = request.form['token']
+    if 'token' in request.form and 'tenant_id' in request.form:
+        # TODO would be better to handle scoped_token == None here
+        # (otherwise, if a user has no reporting role, it will still appear as "session expired" which is confusing)
+        token = get_scoped_token_for_role(auth_role, request.form['token'])
     return render_template('login.html', token=token)
 
 @app.route('/<report>')
@@ -69,10 +102,11 @@ def page_not_found(error):
 
 @app.before_request
 def csrf_protect():
+    return # until rcshib sends back csrf token
     if request.method == "POST":
         token = session.pop('_csrf_token', None)
         if not token or token != request.form.get('_csrf_token'):
-            abort(403)
+            flask.abort(403)
 
 def generate_csrf_token():
     if '_csrf_token' not in session:
