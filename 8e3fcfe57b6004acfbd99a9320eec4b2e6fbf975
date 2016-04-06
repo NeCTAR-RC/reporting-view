@@ -48,6 +48,30 @@
     },
     {
       "key": {
+        "uuid": "bad4c104_450c1c43",
+        "filename": "reporting_view.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1000129
+      },
+      "writtenOn": "2016-04-06T03:58:16Z",
+      "side": 1,
+      "message": "We get a v2 token back from rcshib - the hivemind example has username and password, and while the django auth example has a token I can\u0027t find the code that actually talks to keystone (the django.contrib.auth code calls into a backend that\u0027s provided by a plugin or something).\n\nCan we just supply a v2 token to the v3 endpoint and \u0027upgrade\u0027 it?",
+      "parentUuid": "bad4c104_254ab880",
+      "range": {
+        "startLine": 25,
+        "startChar": 0,
+        "endLine": 37,
+        "endChar": 24
+      },
+      "revId": "8e3fcfe57b6004acfbd99a9320eec4b2e6fbf975",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "bad4c104_655be054",
         "filename": "reporting_view.py",
         "patchSetId": 2
@@ -65,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "bad4c104_65092031",
+        "filename": "reporting_view.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 1000129
+      },
+      "writtenOn": "2016-04-06T03:58:16Z",
+      "side": 1,
+      "message": "The redirection is in the javascript code.",
+      "parentUuid": "bad4c104_655be054",
+      "revId": "8e3fcfe57b6004acfbd99a9320eec4b2e6fbf975",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "bad4c104_8558e457",
         "filename": "reporting_view.py",
         "patchSetId": 2
@@ -76,6 +118,30 @@
       "writtenOn": "2016-04-06T03:34:29Z",
       "side": 1,
       "message": "Shouldn\u0027t we just not do csrf on the url that rschib posts to as opposed to a blanket disable?",
+      "range": {
+        "startLine": 104,
+        "startChar": 4,
+        "endLine": 104,
+        "endChar": 10
+      },
+      "revId": "8e3fcfe57b6004acfbd99a9320eec4b2e6fbf975",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "bad4c104_8506241f",
+        "filename": "reporting_view.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 1000129
+      },
+      "writtenOn": "2016-04-06T03:58:16Z",
+      "side": 1,
+      "message": "We\u0027re still trying to decide how to handle CSRF. All this code does is take the token handed back by rcshib and put it in session storage on the client end, where it\u0027s used to talk directly to the API server, so we\u0027re not even sure it gains us anything.",
+      "parentUuid": "bad4c104_8558e457",
       "range": {
         "startLine": 104,
         "startChar": 4,
