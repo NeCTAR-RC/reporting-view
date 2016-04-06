@@ -5,6 +5,37 @@ import time
 import hashlib
 import flask
 from flask import Flask, request, render_template, session
+from keystoneclient.v2_0 import client as kc
+import requests
+
+magic_role = 'reporting-api-auth' # TODO will move this to config.json later
+auth_url = 'http://keystone-k.dev.rc.nectar.org.au:5000/v2.0' # TODO will move this to config.json later
+
+def get_scoped_token_for_role(role, unscoped_token):
+    """Look up all tenants to which the given token has access, and search them
+    for any having the specified role. If a match is found, return a
+    corresponding tenant-scoped token; otherwise, return None.
+
+    Arguments:
+    role           -- what to search for
+    unscoped_token -- auth token not necessarily scoped to any particular tenant
+    """
+
+    # /v2.0/tenants --- could not find this exposed by python bindings
+    r = requests.get(
+        auth_url+'/tenants',
+        headers = {'x-auth-token' : unscoped_token}
+    )
+    tenants = r.json()['tenants']
+
+    for t in tenants:
+        tenant = t['name']
+        keystone = kc.Client(tenant_name=tenant, token=unscoped_token, auth_url=auth_url)
+        token = keystone.auth_ref['token']['id']
+        roles = keystone.auth_ref['user']['roles']
+        if role in [r['name'] for r in roles]:
+            return token
+    return None
 
 class TimeoutException(Exception):
     """Raised when reading a secret key times out.
@@ -47,12 +78,13 @@ def get_secret_key(secret_directory='/tmp/reporting_view', secret_file='secret.t
 app = Flask(__name__)
 app.secret_key = get_secret_key()
 
-@app.route('/')
+@app.route('/', methods=['GET', 'POST'])
 def login():
-    print(request.form)
     token = ""
-    if 'token' in request.form:
-        token = request.form['token']
+    if 'token' in request.form and 'tenant_id' in request.form:
+        # TODO would be better to handle scoped_token == None here
+        # (otherwise, if a user has no reporting role, it will still appear as "session expired" which is confusing)
+        token = get_scoped_token_for_role(magic_role, request.form['token'])
     return render_template('login.html', token=token)
 
 @app.route('/<report>')
@@ -69,10 +101,11 @@ def page_not_found(error):
 
 @app.before_request
 def csrf_protect():
+    return # until rcshib sends back csrf token
     if request.method == "POST":
         token = session.pop('_csrf_token', None)
         if not token or token != request.form.get('_csrf_token'):
-            abort(403)
+            flask.abort(403)
 
 def generate_csrf_token():
     if '_csrf_token' not in session:
