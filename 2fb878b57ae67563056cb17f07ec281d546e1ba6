@@ -2,6 +2,52 @@
   "comments": [
     {
       "key": {
+        "uuid": "bad4c104_4577bcd4",
+        "filename": "reporting_view.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2016-04-06T03:34:29Z",
+      "side": 1,
+      "message": "needs to be done before committed",
+      "range": {
+        "startLine": 11,
+        "startChar": 0,
+        "endLine": 12,
+        "endChar": 104
+      },
+      "revId": "2fb878b57ae67563056cb17f07ec281d546e1ba6",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "bad4c104_6574c0cf",
+        "filename": "reporting_view.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2016-04-06T03:34:29Z",
+      "side": 1,
+      "message": "Should be using v3 api, v2 is deprecated. Also this is available via the python bindings. Check out some example code that lists all projects a user is in (including what roles they have) https://github.com/NeCTAR-RC/hivemind_contrib/blob/master/hivemind_contrib/keystone.py#L242",
+      "range": {
+        "startLine": 24,
+        "startChar": 0,
+        "endLine": 29,
+        "endChar": 33
+      },
+      "revId": "2fb878b57ae67563056cb17f07ec281d546e1ba6",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "bad4c104_056e9401",
         "filename": "reporting_view.py",
         "patchSetId": 1
@@ -18,6 +64,46 @@
         "startChar": 0,
         "endLine": 79,
         "endChar": 16
+      },
+      "revId": "2fb878b57ae67563056cb17f07ec281d546e1ba6",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "bad4c104_a57ec8ac",
+        "filename": "reporting_view.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2016-04-06T03:34:29Z",
+      "side": 1,
+      "message": "When it gets a POST shouldn\u0027t it then redirect to a page if it is successful? Looks like it just renders the login page again? Standard practise in HTTP is to return a 30x after a successful POST",
+      "revId": "2fb878b57ae67563056cb17f07ec281d546e1ba6",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "bad4c104_8581c491",
+        "filename": "reporting_view.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2016-04-06T03:34:29Z",
+      "side": 1,
+      "message": "Shouldn\u0027t we just not do csrf on the url that rschib posts to as opposed to a blanket disable?",
+      "range": {
+        "startLine": 105,
+        "startChar": 4,
+        "endLine": 105,
+        "endChar": 47
       },
       "revId": "2fb878b57ae67563056cb17f07ec281d546e1ba6",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
