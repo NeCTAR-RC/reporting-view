@@ -1,0 +1,90 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "bad4c104_455edc46",
+        "filename": "reporting_view.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2016-04-06T03:34:29Z",
+      "side": 1,
+      "message": "needs to be done before committed",
+      "range": {
+        "startLine": 11,
+        "startChar": 0,
+        "endLine": 12,
+        "endChar": 104
+      },
+      "revId": "8e3fcfe57b6004acfbd99a9320eec4b2e6fbf975",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "bad4c104_254ab880",
+        "filename": "reporting_view.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2016-04-06T03:34:29Z",
+      "side": 1,
+      "message": "Should be using v3 api, v2 is deprecated. Also this is available via the python bindings. Check out some example code that lists all projects a user is in (including what roles they have) https://github.com/NeCTAR-RC/hivemind_contrib/blob/master/hivemind_contrib/keystone.py#L242\n\nYou could also look at django-openstack-auth https://github.com/openstack/django_openstack_auth/blob/master/openstack_auth/views.py#L127 which is what the dashboard does",
+      "range": {
+        "startLine": 25,
+        "startChar": 0,
+        "endLine": 37,
+        "endChar": 24
+      },
+      "revId": "8e3fcfe57b6004acfbd99a9320eec4b2e6fbf975",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "bad4c104_655be054",
+        "filename": "reporting_view.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2016-04-06T03:34:29Z",
+      "side": 1,
+      "message": "When it gets a POST shouldn\u0027t it then redirect to a page if it is successful? Looks like it just renders the login page again? Standard practise in HTTP is to return a 30x after a successful POST",
+      "revId": "8e3fcfe57b6004acfbd99a9320eec4b2e6fbf975",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "bad4c104_8558e457",
+        "filename": "reporting_view.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2016-04-06T03:34:29Z",
+      "side": 1,
+      "message": "Shouldn\u0027t we just not do csrf on the url that rschib posts to as opposed to a blanket disable?",
+      "range": {
+        "startLine": 104,
+        "startChar": 4,
+        "endLine": 104,
+        "endChar": 10
+      },
+      "revId": "8e3fcfe57b6004acfbd99a9320eec4b2e6fbf975",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    }
+  ]
+}
