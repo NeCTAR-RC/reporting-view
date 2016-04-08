@@ -4,7 +4,8 @@ reporting-view for Debian
 This package is almost completely javascript, with a single minimal flask based
 wsgi application. To configure it, modify the provided apache.conf file
 according to your site requirements, pointing mod_wsgi at the reporting_view.py
-script.
+script. Then modify the reporting-view.conf file appropriately for your
+environment and place it in /etc/reporting-view/.
 
 In addition, the file /etc/reporting-view/config.js will need to be customised
 after installation. This is symlinked into the /usr/share/reporting-view/static

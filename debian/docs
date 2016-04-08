@@ -1,4 +1,5 @@
 reporting_schema_nectar.sql
 reporting_schema.sql
 debian/apache.conf
+debian/reporting-view.conf
 TESTING.txt
