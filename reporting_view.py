@@ -19,7 +19,6 @@ auth_url = config.get('server', 'auth_url')
 auth_role = config.get('server', 'auth_role')
 
 def get_scoped_token_for_role(role, unscoped_token):
-
     # get user's projects, using the unscoped token
     auth     = Token(auth_url=auth_url, token=unscoped_token)
     session  = Session(auth=auth)
@@ -83,10 +82,8 @@ app.secret_key = get_secret_key()
 def login():
     token = ""
     if 'token' in request.form and 'tenant_id' in request.form:
-        # TODO would be better to handle scoped_token == None here
-        # (otherwise, if a user has no reporting role, it will still appear as "session expired" which is confusing)
         token = get_scoped_token_for_role(auth_role, request.form['token'])
-    return render_template('login.html', token=token)
+    return render_template('login.html', token=token, auth_failed=(token is None), auth_role=auth_role)
 
 @app.route('/<report>')
 def report(report):

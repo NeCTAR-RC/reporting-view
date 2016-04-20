@@ -16,7 +16,7 @@
   <link rel="stylesheet" href="/static/css/base.css">
 </head>
 <body>
-{% if token %}{# TODO this won't work #}
+{% if token %}
 <script>
 var token = '{{ token }}';
 sessionStorage.setItem(Util.tokenKey, token);
@@ -27,7 +27,7 @@ location.replace(Config.baseURL + Util.reports[0].url);
 <div class="container">
 
 <section class="title error" style="display:none">
-<h2>Whoops</h2>
+<h2 class="title">Whoops</h2>
 <div class="row">
   <div class="full columns">
     <p class="message"></p>
@@ -89,5 +89,14 @@ location.replace(Config.baseURL + Util.reports[0].url);
 </p>
 </footer>
 </div>{# /container #}
+{% if auth_failed %}
+<script>
+$('section').css('display', 'none');
+$('section.error').css('display', '');
+$('section.error .title').html('Not authorised');
+$('footer').css('display', 'none');
+$('.error .message').html('You need the &quot;{{ auth_role }}&quot; role to view reports.');
+</script>
+{% endif %}
 </body>
 </html>

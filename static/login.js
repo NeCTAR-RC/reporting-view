@@ -77,7 +77,6 @@
                 onError(error);
             }
         );
-        /**/
     };
 
     var redirect = function() {
