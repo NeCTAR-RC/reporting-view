@@ -1,14 +1,12 @@
+var Login = {};
 (function($) {
     $(function() {
         // check for web storage api
         if(!Util.storageAvailable('sessionStorage') || !Util.storageAvailable('localStorage')) {
-            $('section').css('display', 'none');
-            $('section.error').css('display', '');
-            $('footer').css('display', 'none');
-            $('.error .message').html('These reports require a modern web browser (with the web storage API).<br>Any recent version of Chrome, Firefox, Internet Explorer, or Safari should work.');
+            Login.error('Unsupported browser', 'These reports require a modern web browser (with the web storage API).<br>Any recent version of Chrome, Firefox, Internet Explorer, or Safari should work.');
         } else if(sessionStorage.getItem(Util.tokenKey)) {
             // token already set; not sure if it's better here to re-authenticate or just assume the token's good
-            redirect();
+            Login.redirect();
         }
 
         // hook up forms
@@ -30,7 +28,7 @@
 
         // save token
         sessionStorage.setItem(Util.tokenKey, keystone.getToken());
-        redirect();
+        Login.redirect();
     };
 
     var onError = function(message) {
@@ -77,10 +75,18 @@
                 onError(error);
             }
         );
-        /**/
     };
 
-    var redirect = function() {
+    Login.redirect = function() {
         location.replace(Config.baseURL + Util.reports[0].url);
     };
+
+    Login.error = function(title, description) {
+        console.log('Error :: '+title+' :: '+description);
+        $('section').css('display', 'none');
+        $('footer').css('display', 'none');
+        $('section.error').css('display', '');
+        $('section.error .title').html(title);
+        $('.error .message').html(description);
+    }
 })(jQuery);

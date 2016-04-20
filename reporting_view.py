@@ -10,6 +10,7 @@ from keystoneclient.auth.identity.v3 import Token
 from keystoneclient.session import Session
 from keystoneclient.v3.client import Client
 import ConfigParser
+import logging
 
 config_path = '/etc/reporting-view/reporting-view.conf'
 config = ConfigParser.ConfigParser()
@@ -19,7 +20,6 @@ auth_url = config.get('server', 'auth_url')
 auth_role = config.get('server', 'auth_role')
 
 def get_scoped_token_for_role(role, unscoped_token):
-
     # get user's projects, using the unscoped token
     auth     = Token(auth_url=auth_url, token=unscoped_token)
     session  = Session(auth=auth)
@@ -82,11 +82,16 @@ app.secret_key = get_secret_key()
 @app.route('/', methods=['GET', 'POST'])
 def login():
     token = ""
+    auth_exception = auth_failed = False
     if 'token' in request.form and 'tenant_id' in request.form:
-        # TODO would be better to handle scoped_token == None here
-        # (otherwise, if a user has no reporting role, it will still appear as "session expired" which is confusing)
-        token = get_scoped_token_for_role(auth_role, request.form['token'])
-    return render_template('login.html', token=token)
+        try:
+            token = get_scoped_token_for_role(auth_role, request.form['token'])
+            if token is None:
+                auth_failed = True
+        except Exception as e:
+            logging.exception('exception in get_scoped_token_for_role')
+            auth_exception = True
+    return render_template('login.html', token=token, auth_failed=auth_failed, auth_exception=auth_exception, auth_role=auth_role)
 
 @app.route('/<report>')
 def report(report):
