@@ -9,73 +9,14 @@ var Login = {};
             Login.redirect();
         }
 
-        // hook up forms
+        // hook up form
         $('form.aaf').attr('action', Config.rcshib_url+'?return-path='+Config.baseURL); // TODO Config.baseURL should be run through encodeURIComponent for safety, but that requires changes to rcshibboleth code to work...
-        $('form.manual').on('submit', function() { getToken(); return false; });
         var message = sessionStorage.getItem(Util.flashKey);
         if(message) {
             $('.instructions').prepend('<p>'+message+'</p>');
         }
         sessionStorage.removeItem(Util.flashKey);
     });
-
-    var keystone;
-
-    var onAuthenticated = function() {
-        // clean up any error messages that might be left over
-        $('.manual').removeClass('error');
-        $('.manual p.message').html('');
-
-        // save token
-        sessionStorage.setItem(Util.tokenKey, keystone.getToken());
-        Login.redirect();
-    };
-
-    var onError = function(message) {
-        $('.manual').addClass('error');
-        $('.manual p.message').html(String(message));
-    };
-
-    /**
-     * please make sure this never throws
-     */
-    var getToken = function() {
-        // remove any error display (actually redundant, since if token gets obtained the browser redirects anyway)
-        $('.manual').removeClass('error');
-        $('.manual p.message').html('');
-
-        var magic = 'a';
-        if($('#username').val() === magic) {
-            keystone = {getToken : function() { return magic; }};
-            onAuthenticated();
-        } else {
-            onError('Unauthorised');
-        }
-
-        /* this code should be used again once authentication actually works...
-         * like now, hopefully */
-        // constructing Keystone instance can throw (e.g. on empty authURL); need to catch that here
-        try {
-            keystone = new osclient.Keystone({
-                authURL       : $('#url').val(),
-                domainName    : 'default',
-                username      : $('#username').val(),
-                password      : $('#password').val(),
-            });
-            keystone.defaultParams.error = function(jqxhr, status, err) {
-                onError(err);
-            };
-        } catch(exception) {
-            onError(exception);
-            return; // don't bother trying to authenticate if something has already failed
-        }
-        keystone.authenticate().then(
-            onAuthenticated,
-            function(error) {
-                onError(error);
-            }
-        );
-    };
 
     Login.redirect = function() {
         location.replace(Config.baseURL + Util.reports[0].url);
@@ -88,5 +29,5 @@ var Login = {};
         $('section.error').css('display', '');
         $('section.error .title').html(title);
         $('.error .message').html(description);
-    }
+    };
 })(jQuery);
