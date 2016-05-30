@@ -197,9 +197,5 @@ var Util = {};
             name : 'Flavour Capacity',
             url  : '/flavour',
         },
-        {
-            name : 'Billing',
-            url  : '/billing',
-        },
     ];
 })();

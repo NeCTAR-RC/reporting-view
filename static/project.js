@@ -1,19 +1,7 @@
 var Project = {};
 (function() {
 
-var pieChart;
-
 Project.init = function() {
-    // set up NVD3 charts
-    nv.addGraph(function() {
-        pieChart = nv.models.pieChart()
-            .margin({top:0, right:0, bottom:0, left:0})
-            .showLegend(false) // do not draw (interactive) keys above the chart, because they take up too much space :(
-            .showLabels(false); // do not draw keys on the chart
-        nv.utils.windowResize(function() { pieChart.update(); });
-        return pieChart;
-    });
-
     // fetch data for report
     Util.initReport([
         {
@@ -33,7 +21,7 @@ var resources = [
         key      : 'vcpus', // to identify and to access data
         label    : 'VCPUs', // for pretty printing
         format   : d3.format('d'),
-        quota    : function(project) { return project.quota_vcpus; }, // if specified, will be shown in pie chart
+        quota    : function(project) { return project.quota_vcpus; }, // if specified, causes "quota exceeded" warnings will be shown
         instance : function(instance) { return instance.vcpus; }, // if specified, sum(instance) with this accessor will be shown in line chart
         //volume : if specified, sum(volume) with this accessor will be added to sum(instance) and shown in line chart
     },
@@ -133,7 +121,7 @@ var report = function(sel, data) {
     radio.property('checked', function(d, i) { return i === 0; });
     radio.on('change', picked);
     s.selectAll('.controls > div').classed('disabled', function(_, i) { return i === 1; });
-    s.selectAll('label').on('click', picked);
+    s.selectAll('label[for=project],label[for=institution]').on('click', picked);
     s.selectAll('#project,#institution').on('change', picked);
 
     // generate resource <select>
@@ -178,9 +166,6 @@ var report = function(sel, data) {
                 instSelect.property('value', o);
             }
         }
-
-        // don't need to re-fetch data when changing displayed resource; jump straight to fetchedAll
-        resSelect.on('change.pie', function() { updatePie(); });
 
         // re-bind handler for availability zone change
         // note that this removes the default (util.js) handler,
@@ -319,17 +304,22 @@ var report = function(sel, data) {
 
             // compile list of all instance/volume creation/deletion events
             var events = [];
+            var nt = Date.now();
             instance.forEach(function(i) {
                 var ct = Date.parse(i.created),
                     dt = Date.parse(i.deleted);
                 i._c_time = ct; // store these for filtering later
                 i._d_time = dt; // (to avoid recomputing for every row)
+                i._w_time = ((isNaN(dt) ? nt : dt) - ct) * 0.001; // convert ms to s for walltime
                 if(!isNaN(ct)) events.push({time:ct, mult:+1, instance:i});
                 if(!isNaN(dt)) events.push({time:dt, mult:-1, instance:i});
             });
             volume.forEach(function(v) {
                 var ct = Date.parse(v.created),
                     dt = Date.parse(v.deleted);
+                v._c_time = ct;                                   // D
+                v._d_time = dt;                                   // R
+                v._w_time = ((isNaN(dt) ? nt : dt) - ct) * 0.001; // Y
                 if(!isNaN(ct)) events.push({time:ct, mult:+1, volume:v});
                 if(!isNaN(dt)) events.push({time:dt, mult:-1, volume:v});
             });
@@ -365,6 +355,34 @@ var report = function(sel, data) {
                 }
             });
 
+            // initialise date selectors
+            if(!report.startPicker) {
+                // controls have not been initialised
+                var startSelected = function(date) {
+                    report.endPicker.setMinDate(date);
+                    chart.dispatch.zoom([date, report.endPicker.getDate()]);
+                };
+                var endSelected = function(date) {
+                    report.startPicker.setMaxDate(date);
+                    // date range for integration is semi-open interval [start, end)
+                    // so to include endPicker's date in the interval, take 00:00 on the subsequent day as the endpoint
+                    var nextDay = new Date(date.getFullYear(), date.getMonth(), date.getDate()+1);
+                    chart.dispatch.zoom([report.startPicker.getDate(), nextDay]);
+                };
+                report.startPicker = new Pikaday({
+                    field : document.getElementById('start'),
+                    defaultDate : new Date(events[0].time),
+                    setDefaultDate : true,
+                    onSelect : startSelected,
+                });
+                report.endPicker = new Pikaday({
+                    field : document.getElementById('end'),
+                    defaultDate : new Date(),
+                    setDefaultDate : true,
+                    onSelect : endSelected,
+                });
+            }
+
             // append "now" data points (hack to make the graphs a bit more readable; doesn't add any extra information)
             var now = Date.now();
             data.forEach(function(d) {
@@ -375,102 +393,114 @@ var report = function(sel, data) {
             });
 
             // data now ready for plotting
-            var updateLine = function() {
+            var dTable; // needed in this scope :(
+            var updateCharts = function() {
                 var idx = resSelect.property('selectedIndex');
                 chart.tickFormat(resources[idx].format);
                 s.select('.chart').datum(data[idx].values).call(chart);
                 chart.dispatch.zoom(null); // reset zoom
-            };
-            resSelect.on('change.line', updateLine);
-            updatePie();
-            updateLine();
 
-            // set up DataTable
-            var sTable = $('table', $(sel));
-            if($.fn.dataTable.isDataTable(sTable)) {
-                // cannot re-initialise DataTable; have to delete it and start again
-                sTable.DataTable().clear().destroy();
-            }
-            var dTable = sTable.DataTable({
-                dom : 'Bfrtip', // show only processing indicator and table
-                data : instance,
-                processing : true,
-                paging : true,
-                deferRender : true,
-                columns : [
-                    {
-                        title : 'Instance',
-                        data : 'name',
-                    },
-                    {
-                        title : 'Created',
-                        data : 'created',
-                        className : 'date',
-                        render : {
-                            display : Formatters.relativeDateDisplay,
+                // if selected resource is volumes, list volumes; otherwise, list instances
+                var listVolumes = resources[idx].key == 'volume';
+
+                // set up DataTable
+                var sTable = $('table', $(sel));
+                if($.fn.dataTable.isDataTable(sTable)) {
+                    // cannot re-initialise DataTable; have to delete it and start again
+                    sTable.DataTable().clear().destroy();
+                }
+                dTable = sTable.DataTable({
+                    dom : 'Bfrtip', // reference: https://datatables.net/reference/option/dom
+                    data : listVolumes ? volume : instance,
+                    processing : true,
+                    paging : true,
+                    deferRender : true,
+                    columns : [
+                        {
+                            title : 'Name',
+                            data : listVolumes ? 'display_name' : 'name',
                         },
-                    },
-                    {
-                        title : 'Deleted',
-                        data : 'deleted',
-                        className : 'date',
-                        render : {
-                            display : Formatters.relativeDateDisplay,
+                        {
+                            title : 'Created',
+                            data : 'created',
+                            className : 'date',
+                            render : {
+                                display : Formatters.relativeDateDisplay,
+                            },
                         },
-                    },
-                    {
-                        title : 'Project',
-                        data : function(ins) {
-                            return project.find(function(p){return p.id===ins.project_id;}).display_name;
+                        {
+                            title : 'Deleted',
+                            data : 'deleted',
+                            className : 'date',
+                            render : {
+                                display : Formatters.relativeDateDisplay,
+                            },
                         },
-                    },
-                    {
-                        title : 'Availability zone',
-                        data : function(ins) {
-                            return ins._trimmed in hostAZ ? hostAZ[ins._trimmed] : 'unknown';
+                        {
+                            title : 'Project',
+                            data : function(ins) {
+                                return project.find(function(p){return p.id===ins.project_id;}).display_name;
+                            },
                         },
-                    },
-                    /*
-                    {
-                        title : 'Wall time',
-                        data : 'wall_time',
-                        render : { display : Formatters.timeDisplay },
-                    },
-                    */
-                    {
-                        title : 'Flavour',
-                        data : 'flavour',
-                        render : {
-                            display : Formatters.flavourDisplay(flavour),
-                            filter : function(fid) { return flavour.find(function(f){return f.id===fid;}).name; },
+                        {
+                            title : 'Availability zone',
+                            data : function(ins) {
+                                return ins._trimmed in hostAZ ? hostAZ[ins._trimmed] : 'unknown';
+                            },
                         },
+                        {
+                            title : 'Walltime',
+                            className : 'walltime',
+                            data : '_w_time',
+                            render : { display : Formatters.hoursDisplay },
+                        },
+                        (listVolumes ?
+                            {
+                                title : 'Size',
+                                data : 'size',
+                                render : {
+                                    display : function(gb) { return Formatters.si_bytes(gb*1024*1024*1024); },
+                                },
+                            } :
+                            {
+                                title : 'Flavour',
+                                data : 'flavour',
+                                render : {
+                                    display : Formatters.flavourDisplay(flavour),
+                                    filter : function(fid) { return flavour.find(function(f){return f.id===fid;}).name; },
+                                },
+                            }
+                        ),
+                        {
+                            title : 'Project ID',
+                            data : 'project_id',
+                            className : 'project_id', // to identify column for filtering
+                            visible : false,
+                        },
+                        {
+                            title : 'ID',
+                            data : 'id',
+                            visible : false,
+                        },
+                    ],
+                    order : [[1, 'desc']], // order by second col: most recently created first
+                    language : {
+                        zeroRecords : 'No matching '+(listVolumes ? 'volumes':'instances')+' found.',
                     },
-                    {
-                        title : 'Project ID',
-                        data : 'project_id',
-                        className : 'project_id', // to identify column for filtering
-                        visible : false,
-                    },
-                    {
-                        title : 'Instance ID',
-                        data : 'id',
-                        visible : false,
-                    },
-                ],
-                order : [[1, 'desc']], // order by second col: most recently created first
-                language : {
-                    zeroRecords : 'No matching instances found.',
-                },
-                buttons : [
-                    {
-                        extend : 'csv',
-                        text : 'Download CSV',
-                        exportOptions : {
-                            orthogonal : 'sort',
+                    buttons : [
+                        {
+                            extend : 'csv',
+                            text : 'Download CSV',
+                            exportOptions : {
+                                orthogonal : 'sort',
+                            }
                         }
-                    }
-                ],
-            });
+                    ],
+                });
+            };
+            resSelect.on('change.line', updateCharts);
+            updateCharts();
+
 
             // add extra event handler for chart zoom, to keep data table synchronised
             chart.dispatch.on('zoom.project', function(extent) {
@@ -490,20 +520,27 @@ var report = function(sel, data) {
                     });
                 }
 
+                // ensure that extent is defined
+                if(!extent) {
+                    extent = [report.startPicker.config().defaultDate, report.endPicker.config().defaultDate];
+                }
+
+                // update date selectors; second param prevents onSelect callback, avoiding infinite loop
+                report.startPicker.setDate(extent[0], true);
+                report.endPicker.setDate(extent[1], true);
+
+                // update chart data _w_time
+                var data = dTable.data();
+                for(var i=0; i<data.length; i++) {
+                    var start = Math.max(data[i]._c_time, extent[0].getTime());
+                    var end = isNaN(data[i]._d_time) ? extent[1].getTime() : Math.min(data[i]._d_time, extent[1].getTime());
+                    data[i]._w_time = (end - start) * 0.001; // convert ms to s for walltime
+                }
+
                 // apply new filters by redrawing
+                dTable.rows().invalidate();
                 dTable.draw();
             });
-        };
-        var updatePie = function() {
-            var key = resSelect.property('value');
-            pieChart
-                .x(function(d) { return d.label; })
-                .y(function(d) { return d[key]; })
-              .tooltip
-                .valueFormatter(resources.find(function(r) { return r.key === key; }).format);
-            s.select('svg')
-                .datum(activeResources)
-                .call(pieChart);
         };
 
         // reset and display progress indicator

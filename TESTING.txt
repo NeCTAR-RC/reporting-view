@@ -120,7 +120,7 @@ that have available capacity to run the selected flavour. The list is sorted by
 the number of instances each hypervisor can run. Hypervisors that cannot run the
 selected instance are greyed out.
 
-Billing/Invoicing/Project Details
+Project Details
 -------
 The Project Details view provides a report on a project's historical usage. 
 
