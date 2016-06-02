@@ -2,5 +2,5 @@
 host=review.rc.nectar.org.au
 port=29418
 project=NeCTAR-RC/reporting-view.git
-defaultbranch=debian/liberty
+defaultbranch=debian
 
