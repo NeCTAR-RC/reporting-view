@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "bad4c104_bf8dda7d",
+        "filename": "templates/project.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 1000129
+      },
+      "writtenOn": "2016-06-03T05:36:51Z",
+      "side": 1,
+      "message": "You didn\u0027t include this, and it\u0027s probably preferable to use a CDN.",
+      "range": {
+        "startLine": 13,
+        "startChar": 2,
+        "endLine": 13,
+        "endChar": 44
+      },
+      "revId": "2ada03e6d78dd3b238530f5ee1e7cfb263c2cc9e",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    }
+  ]
+}
