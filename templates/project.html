@@ -9,8 +9,8 @@
   <script src="//cdn.datatables.net/1.10.10/js/jquery.dataTables.min.js"></script>
   <script src="//cdn.datatables.net/buttons/1.1.2/js/dataTables.buttons.min.js"></script>
   <script src="//cdn.datatables.net/buttons/1.1.2/js/buttons.html5.min.js"></script>
-  <script src="/static/nv.d3.min.js"></script>{# required #}
   <script src="/static/polyfill.js"></script>{# required #}
+  <script src="/static/pikaday.js"></script>
   <script src="/static/config.js"></script>{# required #}
   <script src="/static/util.js"></script>{# required #}
   <script src="/static/formatters.js"></script>
@@ -39,12 +39,12 @@
   <link href='//fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
   <link rel="stylesheet" href="//cdn.datatables.net/1.10.10/css/jquery.dataTables.min.css">
   <link rel="stylesheet" href="//cdn.datatables.net/buttons/1.1.2/css/buttons.dataTables.min.css">
-  <link rel="stylesheet" href="/static/css/nv.d3.css">
   <link rel="stylesheet" href="/static/css/normalize.css">{# required #}
   <link rel="stylesheet" href="/static/css/skeleton.css">{# required #}
   <link rel="stylesheet" href="/static/css/base.css">
   <link rel="stylesheet" href="/static/css/d3-tip.css">
   <link rel="stylesheet" href="/static/css/project.css">{# report-specific style #}
+  <link rel="stylesheet" href="/static/css/pikaday.css">
 </head>
 <body>
 
@@ -67,12 +67,14 @@
     <div><label for="project"><input type="radio">Project</label><select id="project"></select></div>
     <div><label for="institution"><input type="radio">Organisation</label><select id="institution"></select></div>
     <div><label for="resource">Resource</label><select id="resource"></select></div>
-    <p>The pie chart shows how much of the selected resource is being used by the selected project/s, at the selected node/s. The &quot;Unused&quot; segment, where shown, is the difference from the resource quota (across all nodes). The interactive line chart below shows historical usage at the selected node/s.</p>
     <div class="progress"></div>
     <div class="warning" style="display:none"></div>
   </div>
-  <div class="one-half column pie">
-    <div class="square"><svg/></div>
+  <div class="one-half column">
+    <label for="start">Start date</label>
+    <input id="start" class="u-full-width" type="text">
+    <label for="end">End date</label>
+    <input id="end" class="u-full-width" type="text">
   </div>
 </div>
 <div class="row">

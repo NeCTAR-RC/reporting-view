@@ -26,6 +26,10 @@ var Formatters = {};
                '</span>';
     };
 
+    Formatters.hoursDisplay = function(secs) {
+        return humanize.numberFormat(secs/3600.0, 1, '.', '') + ' hours';
+    };
+
     Formatters.si_bytes = function(bytes, decimals) {
         var d = decimals || 0;
         return humanize.intword(
