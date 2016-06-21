@@ -15,28 +15,30 @@ import logging
 config_path = '/etc/reporting-view/reporting-view.conf'
 config = ConfigParser.ConfigParser()
 if len(config.read(config_path)) == 0:
-    sys.exit('Fatal error: could not read config file "{}"'.format(config_path))
+    sys.exit('Error: could not read config file "{}"'.format(config_path))
 auth_url = config.get('server', 'auth_url')
 auth_role = config.get('server', 'auth_role')
 
+
 def get_scoped_token_for_role(role, unscoped_token):
     # get user's projects, using the unscoped token
-    auth     = Token(auth_url=auth_url, token=unscoped_token)
-    session  = Session(auth=auth)
+    auth = Token(auth_url=auth_url, token=unscoped_token)
+    session = Session(auth=auth)
     keystone = Client(session=session)
     projects = keystone.projects.list(user=session.get_user_id())
 
     # get scoped Token for each project, and see that contains our role
     for project in projects:
-        scoped_auth = Token(auth_url   = auth_url,
-                            token      = unscoped_token,
-                            project_id = project.id)
-        scoped_sess = Session(auth = scoped_auth)
+        scoped_auth = Token(auth_url=auth_url,
+                            token=unscoped_token,
+                            project_id=project.id)
+        scoped_sess = Session(auth=scoped_auth)
         scoped_auth_ref = scoped_auth.get_auth_ref(scoped_sess)
         for scoped_role in scoped_auth_ref['roles']:
             if scoped_role['name'] == role:
                 return scoped_auth_ref['auth_token']
     return None
+
 
 class TimeoutException(Exception):
     """Raised when reading a secret key times out.
@@ -45,7 +47,12 @@ class TimeoutException(Exception):
     """
     pass
 
-def get_secret_key(secret_directory='/tmp/reporting-view', secret_file='secret.txt', timeout=5):
+
+def get_secret_key(
+    secret_directory='/tmp/reporting-view',
+    secret_file='secret.txt',
+    timeout=5
+):
     """Load secret key from specified path, if it exists, or randomly generate
     one and save it at the path.
 
@@ -59,25 +66,31 @@ def get_secret_key(secret_directory='/tmp/reporting-view', secret_file='secret.t
     """
     path = os.path.join(secret_directory, secret_file)
     try:
-        os.mkdir(secret_directory, 0700) # raises OSError if directory already exists
-        # since no OSError was raised, key is being generated for first time here
+        os.mkdir(secret_directory, 0700)  # raises OSError if it already exists
+        # since no OSError was raised, key is being generated for first time
         with open(path, 'w') as f:
-            key = os.urandom(24) # Flask quickstart suggests 24 random bytes makes an acceptable secret key
+            # Flask quickstart suggests 24 random bytes makes an acceptable key
+            key = os.urandom(24)
             f.write(key)
             return key
-    except OSError as e:
-        # secret_directory exists; assume somebody else is generating (or has generated) key
+    except OSError:
+        # secret_directory exists; assume somebody else is generating key
         for timer in xrange(timeout):
             try:
                 with open(path, 'r') as f:
                     return f.read()
             except IOError:
-                # secret file isn't (yet?) readable -- maybe someone else is in the process of creating it...
                 time.sleep(1)
-        raise TimeoutException("Couldn't read {path} after {timeout} seconds.".format(path=path, timeout=timeout))
+        raise TimeoutException(
+            "Couldn't read {path} after {timeout} seconds.".format(
+                path=path,
+                timeout=timeout
+            )
+        )
 
 app = Flask(__name__)
 app.secret_key = get_secret_key()
+
 
 @app.route('/', methods=['GET', 'POST'])
 def login():
@@ -88,10 +101,17 @@ def login():
             token = get_scoped_token_for_role(auth_role, request.form['token'])
             if token is None:
                 auth_failed = True
-        except Exception as e:
+        except Exception:
             logging.exception('exception in get_scoped_token_for_role')
             auth_exception = True
-    return render_template('login.html', token=token, auth_failed=auth_failed, auth_exception=auth_exception, auth_role=auth_role)
+    return render_template(
+        'login.html',
+        token=token,
+        auth_failed=auth_failed,
+        auth_exception=auth_exception,
+        auth_role=auth_role
+    )
+
 
 @app.route('/<report>')
 def report(report):
@@ -101,17 +121,20 @@ def report(report):
     except flask.templating.TemplateNotFound:
         flask.abort(404)
 
+
 @app.errorhandler(404)
 def page_not_found(error):
     return render_template('404.html'), 404
 
+
 @app.before_request
 def csrf_protect():
-    return # until rcshib sends back csrf token
+    return  # until rcshib sends back csrf token
     if request.method == "POST":
         token = session.pop('_csrf_token', None)
         if not token or token != request.form.get('_csrf_token'):
             flask.abort(403)
+
 
 def generate_csrf_token():
     if '_csrf_token' not in session:

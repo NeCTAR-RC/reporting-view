@@ -145,8 +145,8 @@ var live = function(sel, data) {
         }
     });
     volume = volume.filter(function(v) { return v.availability_zone.indexOf(az) === 0; });
-    project = project; // don't need to filter here, since "empty" projects don't get shown on pie chart anyway
     hypervisor = hypervisor.filter(function(h) { return h.availability_zone.indexOf(az) === 0; });
+    // don't need to filter projects, since "empty" ones don't get shown on pie chart anyway
 
     // function for reducing over array of instances, extracting what we want to plot
     var agg = function(val, instance) {
