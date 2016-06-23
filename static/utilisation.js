@@ -45,7 +45,8 @@ Utilisation.init = function() {
                 .donutRatio(0.35)
                 .title(r.label)
                 .showLegend(false) // do not draw (interactive) keys above the chart
-                .showLabels(false); // do not draw keys on the chart
+                .showLabels(true) // draw labels on the chart, formatted as:
+                .labelType(function(d, i, dd) { return r.format(dd.value); });
             pieChart
               .tooltip
                 .valueFormatter(r.format);

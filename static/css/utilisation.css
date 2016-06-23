@@ -15,3 +15,9 @@
 .overcommit {
     display: none;
 }
+.nv-label text {
+    font-weight: bold;
+    font-size: 0.7em;
+    /* nvd3 hard-codes fill=rgb(0,0,0), but we don't want that... */
+    fill: white !important;
+}
