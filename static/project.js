@@ -144,8 +144,31 @@ var report = function(sel, data) {
     var progress = Charts.progress();
     var progressContainer = s.select('.progress');
 
+    // there can be quite a lot of data to fetch, and impatient users may
+    // submit multiple simultaneous requests if the ui does not block to
+    // prevent it
+    var blockUI = function() {
+        s.classed('loading', true);
+        s.style('cursor', 'wait');
+        s.selectAll('input,select').attr('disabled', 'disabled');
+        s.select('.cancel').style('display',null);
+
+        // these only get re-shown when all data have been fetched
+        // (not in unblockUI, since that gets called by "cancel" too)
+        s.select('.historical').style('display', 'none');
+        s.select('.table').style('display', 'none');
+    };
+    var unblockUI = function() {
+        s.classed('loading', false);
+        s.style('cursor', null);
+        s.selectAll('input,select').attr('disabled', null);
+        s.select('.cancel').style('display','none');
+        progressContainer.style('display', 'none');
+    };
+
     // called when a different project/institution is selected
     var update = function() {
+        blockUI();
         // create list of projects whose data should be fetched
         var pids;
         if(s.select('label[for=institution] input[type=radio]').property('checked')) {
@@ -215,6 +238,9 @@ var report = function(sel, data) {
             }
         };
         var fetchedAll = function() { // called after fetching all projects' data, aggregated in project and instance
+            unblockUI();
+            s.select('.historical').style('display', null);
+            s.select('.table').style('display', null);
             // pollute instance data with trimmed hypervisor names
             instanceAgg.forEach(function(ins) {
                 var trimmed = ins.hypervisor;
@@ -552,8 +578,8 @@ var report = function(sel, data) {
             .call(progress);
 
         // enqueue all data to be fetched
+        var fetch = Util.fetcher();
         pids.forEach(function(pid) {
-            var fetch = Util.fetcher();
             var on = callbacks(pid, fetched);
             fetch.q({
                 qks     : ['project?id='+pid, 'instance?project_id='+pid, 'volume?project_id='+pid],
@@ -561,8 +587,12 @@ var report = function(sel, data) {
                 success : on.success,
                 error   : on.error,
             });
-            fetch();
         });
+        s.select('.cancel button').on('click', function() {
+            fetch.abort();
+            unblockUI();
+        });
+        fetch();
     };
     update();
 };

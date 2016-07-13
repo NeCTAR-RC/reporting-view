@@ -19,6 +19,7 @@
 function Fetcher(ep, token, on401) { // "unauthorised" gets special mention because it is a status we always handle the same way (namely, asking user to re-authenticate, assuming token has expired)
     var endpoint = ep; // reporting-api base url
     var queue = []; // list of objects with keys: qks, success, error
+    var pending = []; // list of xhr objects for requests made but not complete
 
     /// fetch data
     function fetcher() {
@@ -34,7 +35,7 @@ function Fetcher(ep, token, on401) { // "unauthorised" gets special mention beca
         var qks = queue.reduce(function(val, q) { return val.concat(q.qks); }, []);
         qks = qks.filter(function(qk, i) { return qks.indexOf(qk) === i; });
         qks.forEach(function(qk) {
-            sqldump(
+            pending.push(sqldump(
                 endpoint,
                 qk,
                 function(qk_data) {
@@ -61,7 +62,7 @@ function Fetcher(ep, token, on401) { // "unauthorised" gets special mention beca
                         }
                     });
                 }
-            );
+            ));
         });
     }
 
@@ -79,6 +80,7 @@ function Fetcher(ep, token, on401) { // "unauthorised" gets special mention beca
     /// clear queue of reports to be fetched
     fetcher.clear = function() {
         queue = [];
+        pending = [];
         return fetcher;
     };
 
@@ -90,9 +92,22 @@ function Fetcher(ep, token, on401) { // "unauthorised" gets special mention beca
         });
     };
 
+    /// abort any in-flight requests;
+    /// means that no more success or error callbacks will be made
+    /// (so calling code must clean up ui etc.)
+    fetcher.abort = function() {
+        pending.forEach(function(xhr) {
+            xhr.abort();
+        });
+        queue.forEach(function(q) {
+            // ensure that no subsequent callbacks be made
+            q.done = true;
+        });
+    };
+
     /// retrieve json data
     var sqldump = function(ep, qk, success, error) {
-        d3.json(ep + '/v1/reports/' + qk)
+        return d3.json(ep + '/v1/reports/' + qk)
             .header('x-auth-token', token)
             .on('load', success)
             .on('error', error)
