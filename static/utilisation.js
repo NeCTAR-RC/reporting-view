@@ -182,6 +182,14 @@ var live = function(sel, data) {
         oi[organisation].push(i);
     });
 
+    // make sure to include keys for any organisations with volumes, since it
+    // is possible to have volumes but no instances in the selected AZ
+    // (this code has grown over time to be pretty messy)
+    volume.forEach(function(v) {
+        var organisation = po[v.project_id] || '__undefined';
+        if(!(organisation in oi)) oi[organisation] = [];
+    });
+
     // reduce oi to get {"Organisation name" : {key, label, vcpus, etc.}}
     var activeResources = Object.keys(oi).map(function(o) {
         return oi[o].reduce(agg, {key:o, label:o in pseudoOrg ? pseudoOrg[o] : o, vcpus:0, memory:0, local_storage:0});
