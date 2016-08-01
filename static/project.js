@@ -434,6 +434,7 @@ var report = function(sel, data) {
                 if($.fn.dataTable.isDataTable(sTable)) {
                     // cannot re-initialise DataTable; have to delete it and start again
                     sTable.DataTable().clear().destroy();
+                    sTable.empty(); // clear out leftover data stored in dom by DataTables
                 }
                 dTable = sTable.DataTable({
                     dom : 'Bfrtip', // reference: https://datatables.net/reference/option/dom
@@ -480,23 +481,6 @@ var report = function(sel, data) {
                             data : '_w_time',
                             render : { display : Formatters.hoursDisplay },
                         },
-                        (listVolumes ?
-                            {
-                                title : 'Size',
-                                data : 'size',
-                                render : {
-                                    display : function(gb) { return Formatters.si_bytes(gb*1024*1024*1024); },
-                                },
-                            } :
-                            {
-                                title : 'Flavour',
-                                data : 'flavour',
-                                render : {
-                                    display : Formatters.flavourDisplay(flavour),
-                                    filter : function(fid) { return flavour.find(function(f){return f.id===fid;}).name; },
-                                },
-                            }
-                        ),
                         {
                             title : 'Project ID',
                             data : 'project_id',
@@ -508,7 +492,51 @@ var report = function(sel, data) {
                             data : 'id',
                             visible : false,
                         },
-                    ],
+                    ].concat(listVolumes ? [ // extra columns when listing volumes:
+                        {
+                            title : 'Size',
+                            data : 'size',
+                            render : {
+                                display : function(gb) { return Formatters.si_bytes(gb*1024*1024*1024); },
+                            },
+                        }
+                    ] : [ // extra columns when when listing instances:
+                        {
+                            title : 'Flavour',
+                            data : 'flavour',
+                            render : {
+                                _ : Formatters.flavourDisplay(flavour),
+                                filter : function(fid) { return flavour.find(function(f){return f.id===fid;}).name; },
+                            },
+                        },
+                        {
+                            title : 'Flavour.vcpus',
+                            data : 'flavour',
+                            render : {
+                                _ : function(fid) { return flavour.find(function(f){return f.id===fid;}).vcpus; },
+                            },
+                            searchable : false,
+                            visible : false,
+                        },
+                        {
+                            title : 'Flavour.memory_mb',
+                            data : 'flavour',
+                            render : {
+                                _ : function(fid) { return flavour.find(function(f){return f.id===fid;}).memory; },
+                            },
+                            searchable : false,
+                            visible : false,
+                        },
+                        {
+                            title : 'Flavour.disk_gb',
+                            data : 'flavour',
+                            render : {
+                                _ : function(fid) { var f = flavour.find(function(f){return f.id===fid;}); return f.root+f.ephemeral; },
+                            },
+                            searchable : false,
+                            visible : false,
+                        },
+                    ]),
                     order : [[1, 'desc']], // order by second col: most recently created first
                     language : {
                         zeroRecords : 'No matching '+(listVolumes ? 'volumes':'instances')+' found.',
@@ -518,7 +546,7 @@ var report = function(sel, data) {
                             extend : 'csv',
                             text : 'Download CSV',
                             exportOptions : {
-                                orthogonal : 'sort',
+                                orthogonal : 'export',
                             }
                         }
                     ],
