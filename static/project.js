@@ -536,6 +536,12 @@ var report = function(sel, data) {
                             searchable : false,
                             visible : false,
                         },
+                        {
+                            title : 'Core hours',
+                            data : function(row) { return row.vcpus*row._w_time/3600.0; },
+                            searchable : false,
+                            visible : false,
+                        },
                     ]),
                     order : [[1, 'desc']], // order by second col: most recently created first
                     language : {
