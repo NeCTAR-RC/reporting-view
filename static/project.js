@@ -383,7 +383,6 @@ var report = function(sel, data) {
 
             // initialise date selectors
             if(!report.startPicker) {
-                // controls have not been initialised
                 var startSelected = function(date) {
                     report.endPicker.setMinDate(date);
                     chart.dispatch.zoom([date, report.endPicker.getDate()]);
@@ -391,9 +390,9 @@ var report = function(sel, data) {
                 var endSelected = function(date) {
                     report.startPicker.setMaxDate(date);
                     // date range for integration is semi-open interval [start, end)
-                    // so to include endPicker's date in the interval, take 00:00 on the subsequent day as the endpoint
-                    var nextDay = new Date(date.getFullYear(), date.getMonth(), date.getDate()+1);
-                    chart.dispatch.zoom([report.startPicker.getDate(), nextDay]);
+                    // so we're technically missing 1 millisecond here...
+                    var endOfDay = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59, 999);
+                    chart.dispatch.zoom([report.startPicker.getDate(), endOfDay]);
                 };
                 report.startPicker = new Pikaday({
                     field : document.getElementById('start'),
@@ -419,12 +418,8 @@ var report = function(sel, data) {
             });
 
             // data now ready for plotting
-            var dTable; // needed in this scope :(
             var updateCharts = function() {
                 var idx = resSelect.property('selectedIndex');
-                chart.tickFormat(resources[idx].format);
-                s.select('.chart').datum(data[idx].values).call(chart);
-                chart.dispatch.zoom(null); // reset zoom
 
                 // if selected resource is volumes, list volumes; otherwise, list instances
                 var listVolumes = resources[idx].key == 'volume';
@@ -436,7 +431,7 @@ var report = function(sel, data) {
                     sTable.DataTable().clear().destroy();
                     sTable.empty(); // clear out leftover data stored in dom by DataTables
                 }
-                dTable = sTable.DataTable({
+                var dTable = sTable.DataTable({
                     dom : 'Bfrtip', // reference: https://datatables.net/reference/option/dom
                     data : listVolumes ? volume : instance,
                     processing : true,
@@ -557,50 +552,57 @@ var report = function(sel, data) {
                         }
                     ],
                 });
+
+                // add extra event handler for chart zoom, to keep data table synchronised
+                chart.dispatch.on('zoom.project', function(extent) {
+                    // remove existing filter functions
+                    var nf = $.fn.dataTable.ext.search.length;
+                    for(var j=0; j<nf; j++) {
+                        $.fn.dataTable.ext.search.pop();
+                    }
+
+                    if(extent) {
+                        // add new filter to show only instances within extent
+                        var e0 = extent[0].getTime(), // extract numeric values
+                            e1 = extent[1].getTime(); // of dates
+                        $.fn.dataTable.ext.search.push(function(settings, data, dataIndex, instance) {
+                            // don't show instance if it was deleted before the time interval, or created after
+                            return !(instance._d_time < e0 || instance._c_time > e1);
+                        });
+                    }
+
+                    // ensure that extent is defined
+                    if(!extent) {
+                        // "now" is as out of date as fetched data; using "new Date()" could be misleading
+                        extent = [new Date(events[0].time), new Date(now)];
+                    }
+
+                    // update date selectors; second param prevents onSelect callback, avoiding infinite loop
+                    report.startPicker.setDate(extent[0], true);
+                    report.endPicker.setDate(extent[1], true);
+
+                    // update chart data _w_time
+                    var data = dTable.data();
+                    for(var i=0; i<data.length; i++) {
+                        var start = Math.max(extent[0].getTime(), data[i]._c_time);
+                        var end = Math.min(extent[1].getTime(), isNaN(data[i]._d_time) ? nt : data[i]._d_time);
+                        data[i]._w_time = (end - start) * 0.001; // convert ms to s for walltime
+                    }
+                    window.data = data;
+
+                    // apply new filters by redrawing
+                    dTable.rows().invalidate();
+                    dTable.draw();
+                });
+
+                // tick format may have changed if viewing a different resource
+                chart.tickFormat(resources[idx].format);
+                s.select('.chart').datum(data[idx].values).call(chart);
+                chart.dispatch.zoom(null); // reset zoom
             };
+
             resSelect.on('change.line', updateCharts);
             updateCharts();
-
-
-            // add extra event handler for chart zoom, to keep data table synchronised
-            chart.dispatch.on('zoom.project', function(extent) {
-                // remove existing filter functions
-                var nf = $.fn.dataTable.ext.search.length;
-                for(var j=0; j<nf; j++) {
-                    $.fn.dataTable.ext.search.pop();
-                }
-
-                if(extent) {
-                    // add new filter to show only instances within extent
-                    var e0 = extent[0].getTime(), // extract numeric values
-                        e1 = extent[1].getTime(); // of dates
-                    $.fn.dataTable.ext.search.push(function(settings, data, dataIndex, instance) {
-                        // don't show instance if it was deleted before the time interval, or created after
-                        return !(instance._d_time < e0 || instance._c_time > e1);
-                    });
-                }
-
-                // ensure that extent is defined
-                if(!extent) {
-                    extent = [report.startPicker.config().defaultDate, report.endPicker.config().defaultDate];
-                }
-
-                // update date selectors; second param prevents onSelect callback, avoiding infinite loop
-                report.startPicker.setDate(extent[0], true);
-                report.endPicker.setDate(extent[1], true);
-
-                // update chart data _w_time
-                var data = dTable.data();
-                for(var i=0; i<data.length; i++) {
-                    var start = Math.max(data[i]._c_time, extent[0].getTime());
-                    var end = isNaN(data[i]._d_time) ? extent[1].getTime() : Math.min(data[i]._d_time, extent[1].getTime());
-                    data[i]._w_time = (end - start) * 0.001; // convert ms to s for walltime
-                }
-
-                // apply new filters by redrawing
-                dTable.rows().invalidate();
-                dTable.draw();
-            });
         };
 
         // reset and display progress indicator
