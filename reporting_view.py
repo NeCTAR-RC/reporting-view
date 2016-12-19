@@ -88,6 +88,7 @@ def get_secret_key(
             )
         )
 
+
 app = Flask(__name__)
 app.secret_key = get_secret_key()
 
@@ -140,6 +141,7 @@ def generate_csrf_token():
     if '_csrf_token' not in session:
         session['_csrf_token'] = hashlib.sha1(os.urandom(64)).hexdigest()
     return session['_csrf_token']
+
 
 app.jinja_env.globals['csrf_token'] = generate_csrf_token
 
