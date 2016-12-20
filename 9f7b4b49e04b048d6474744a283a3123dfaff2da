@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7adec928_3042db10",
+        "filename": "static/project.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 399,
+      "author": {
+        "id": 1000143
+      },
+      "writtenOn": "2016-12-20T06:10:08Z",
+      "side": 1,
+      "message": "If I\u0027m following along correctly: if a project is selected that has never run an instance or created a volume, won\u0027t this attempt to read the first entry of an empty array raise a TypeError?",
+      "range": {
+        "startLine": 399,
+        "startChar": 43,
+        "endLine": 399,
+        "endChar": 57
+      },
+      "revId": "9f7b4b49e04b048d6474744a283a3123dfaff2da",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7adec928_103ddf8f",
+        "filename": "static/project.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 577,
+      "author": {
+        "id": 1000143
+      },
+      "writtenOn": "2016-12-20T06:10:08Z",
+      "side": 1,
+      "message": "If for some bizarre reason this code gets executed on a project that has never launched and instance or created a volume, won\u0027t it blow up as in my previous comment?",
+      "range": {
+        "startLine": 577,
+        "startChar": 43,
+        "endLine": 577,
+        "endChar": 49
+      },
+      "revId": "9f7b4b49e04b048d6474744a283a3123dfaff2da",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    }
+  ]
+}
