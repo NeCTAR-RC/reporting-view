@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7adec928_30457b70",
+        "filename": "static/project.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 399,
+      "author": {
+        "id": 1000160
+      },
+      "writtenOn": "2016-12-21T03:56:11Z",
+      "side": 1,
+      "message": "Data only gets fetched for projects which have created instances (see project.js:9) so this problem should not occur. However, you have drawn my attention to the fact that if a project creates volumes and no instances, it won\u0027t show up on this page, which is a separate bug that I should fix. I\u0027ll do that in a separate changeset since it\u0027s not really related to this change at all.",
+      "parentUuid": "7adec928_3042db10",
+      "range": {
+        "startLine": 399,
+        "startChar": 43,
+        "endLine": 399,
+        "endChar": 57
+      },
+      "revId": "9f7b4b49e04b048d6474744a283a3123dfaff2da",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7adec928_103ddf8f",
         "filename": "static/project.js",
         "patchSetId": 2
