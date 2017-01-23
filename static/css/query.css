@@ -1,0 +1,7 @@
+div.uri {
+    font-family: monospace;
+    overflow-wrap: break-word;
+
+    /* to match properties defined in skeleton.css: */
+    line-height: 38px;  
+}
