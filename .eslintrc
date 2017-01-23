@@ -18,12 +18,13 @@ rules:
 
 globals:
   d3: false
-  Util: true
   nv: false
+  saveAs: false
+  humanize: false
+  CSV: false
+  Util: true
   Formatters: true
   Pikaday: true
   Config: true
   Charts: true
   Fetcher: true
-  humanize: true
-  osclient: true
