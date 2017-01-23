@@ -3,3 +3,4 @@ static/d3-tip.min.js
 static/js-openstackclient.min.js
 static/pikaday.js
 static/nv.d3.min.js
+static/csv.js

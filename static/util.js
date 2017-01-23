@@ -197,5 +197,9 @@ var Util = {};
             name : 'Flavour Capacity',
             url  : '/flavour',
         },
+        {
+            name : 'Query API',
+            url  : '/query',
+        },
     ];
 })();
