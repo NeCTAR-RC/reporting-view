@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5adbc538_571dd472",
+        "filename": "static/css/query.css",
+        "patchSetId": 6
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2017-01-31T05:49:20Z",
+      "side": 1,
+      "message": "whitespace :-(",
+      "revId": "f5ba74e1afddc1d9731690196539b87cbc0cc707",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    }
+  ]
+}
