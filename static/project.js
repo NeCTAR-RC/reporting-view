@@ -6,7 +6,7 @@ Project.init = function() {
     Util.initReport([
         {
             sel : '.report',
-            dep : ['project?personal=0&has_instances=1', 'flavour', 'hypervisor'], // need hypervisor data for node-level filtering (until instance.availability_zone is useful)
+            dep : ['project?personal=0&has_instances=1', 'flavour'],
             fun : report,
         },
     ], {
@@ -52,27 +52,8 @@ var report = function(sel, data) {
     var s = d3.select(sel);
     var warn = s.select('.warning');
     var project = data['project?personal=0&has_instances=1'];
-    var hypervisor = data.hypervisor;
     var flavour = data.flavour;
     var az = localStorage.getItem(Util.nodeKey);
-
-    // build mapping {trimmed hypervisor name : availability zone} for node-level filtering later on
-    var hostAZ = {};
-    hypervisor.forEach(function(h) {
-        var trimmed = h.hostname;
-        var i = trimmed.indexOf('.');
-        if(i !== -1) trimmed = trimmed.substr(0, i);
-        if(trimmed in hostAZ) {
-            // TODO handle errors better
-            if(hostAZ[trimmed] === h.availability_zone) {
-                console.log('Warning: duplicate hypervisor name "'+trimmed+'" (same AZ)');
-            } else {
-                console.log('Error: duplicate hypervisor name "'+trimmed+'"');
-            }
-        }
-        hostAZ[trimmed] = h.availability_zone;
-    });
-    // (when we have a table mapping project_id -> availability_zones, project list can be filtered here, to make sure that by default a nonempty chart is shown)
 
     // extract project ids, organisations, and display names, and sort
     project = project
@@ -241,25 +222,15 @@ var report = function(sel, data) {
             unblockUI();
             s.select('.historical').style('display', null);
             s.select('.table').style('display', null);
-            // pollute instance data with trimmed hypervisor names
-            instanceAgg.forEach(function(ins) {
-                var trimmed = ins.hypervisor;
-                if(!trimmed) return; // will be ignored later
-                var i = trimmed.indexOf('.');
-                if(i > -1) trimmed = trimmed.substr(0, i);
-                ins._trimmed = trimmed;
-            });
 
-            // filter by node
+            // filter by availability_zone
             var instance = instanceAgg.filter(function(ins) {
-                if(!ins._trimmed) return false; // ignore instances with no hypervisor, because these are never scheduled and never used any resources
-                if(ins._trimmed in hostAZ) {
-                    return hostAZ[ins._trimmed].indexOf(az) === 0;
-                } else {
-                    // TODO handle error
-                    console.log('Error: hypervisor ('+ins._trimmed+') for instance '+ins.id+' not found');
-                    return az === ''; // include instances with unknown hypervisors when selected node is "all"
+                if(!ins.availability_zone) {
+                    // ignore (presumably unscheduled) instances with no AZ
+                    console.log('Warning: missing availability_zone data for instance', ins.id);
+                    return false;
                 }
+                return Util.matchAZ(ins.availability_zone);
             });
             var volume = volumeAgg.filter(function(v) { return v.availability_zone.indexOf(az) === 0; });
             var project = projectAgg.filter(function() { return true; });
@@ -467,7 +438,7 @@ var report = function(sel, data) {
                         {
                             title : 'Availability zone',
                             data : function(ins) {
-                                return ins._trimmed in hostAZ ? hostAZ[ins._trimmed] : 'unknown';
+                                return ins.availability_zone;
                             },
                         },
                         {

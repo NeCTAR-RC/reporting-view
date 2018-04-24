@@ -91,7 +91,7 @@ Utilisation.init = function() {
         Util.initReport([
             {
                 sel : '.live',
-                dep : ['project?personal=0', 'hypervisor', 'volume?active=1', 'instance?active=1'],
+                dep : ['project?personal=0', 'hypervisor?active=1', 'volume?active=1', 'instance?active=1'],
                 fun : live,
             },
             {
@@ -112,41 +112,22 @@ var live = function(sel, data) {
     var instance = data['instance?active=1'];
     var volume = data['volume?active=1'];
     var project = data['project?personal=0'];
-    var hypervisor = data.hypervisor;
+    var hypervisor = data['hypervisor?active=1'];
     var s = d3.select(sel);
 
     // prepare some data for filtering by AZ
     // need to know which projects have instances running in which AZs
     var az = localStorage.getItem(Util.nodeKey);
-    var hypByHostname = {}; // for looking up hypervisors by hostname
-    hypervisor.forEach(function(h) {
-        var trimmed = h.hostname;
-        var i = trimmed.indexOf('.');
-        if(i !== -1) trimmed = trimmed.substr(0, i);
-        if(trimmed in hypByHostname) {
-            var other = hypByHostname[trimmed];
-            if(other.availability_zone !== h.availability_zone) {
-                console.log('Error: non-unique hostname "'+trimmed+'" ("'+h.hostname+'") with multiple availability zones');
-            } else {
-                console.log('Warning: non-unique hostname "'+trimmed+'" ("'+h.hostname+'")');
-            }
-        }
-        hypByHostname[trimmed] = h; // should really handle errors better
-    });
     instance = instance.filter(function(i) {
-        var trimmed = i.hypervisor;
-        if(trimmed === null) return false; // ignore instances with no hypervisor, because these are never scheduled and never used any resources
-        var idx = trimmed.indexOf('.');
-        if(idx !== -1) trimmed = trimmed.substr(0, idx);
-        if(trimmed in hypByHostname) {
-            return hypByHostname[trimmed].availability_zone.indexOf(az) === 0;
-        } else {
-            console.log('Error: could not find hypervisor for instance "'+i.id+'"');
+        if(!i.availability_zone) {
+            // ignore instances with no hypervisor, because these are never scheduled and never used any resources
+            console.log('Warning: missing availability_zone for instance ' + i.id);
             return false;
         }
+        return Util.matchAZ(i.availability_zone);
     });
-    volume = volume.filter(function(v) { return v.availability_zone.indexOf(az) === 0; });
-    hypervisor = hypervisor.filter(function(h) { return h.availability_zone.indexOf(az) === 0; });
+    volume = volume.filter(function(v) { return Util.matchAZ(v.availability_zone); });
+    hypervisor = hypervisor.filter(function(h) { return Util.matchAZ(h.availability_zone); });
     // don't need to filter projects, since "empty" ones don't get shown on pie chart anyway
 
     // function for reducing over array of instances, extracting what we want to plot
