@@ -44,7 +44,7 @@ Flavour.init = function() {
         },
         {
             sel : '.hypervisors',
-            dep : ['hypervisor', 'instance?active=1', 'flavour'],
+            dep : ['hypervisor?active=1', 'instance?active=1', 'flavour'],
             fun : report_list,
         },
     ], {
@@ -125,11 +125,10 @@ function report_list(sel, g) {
     // relabel for convenience
     var s = d3.select(sel);
     var instance = g['instance?active=1'];
-    var hypervisor = g.hypervisor;
+    var hypervisor = g['hypervisor?active=1'];
 
     // filter by availability zone
-    var az = localStorage.getItem(Util.nodeKey);
-    hypervisor = hypervisor.filter(function(h) { return h.availability_zone.indexOf(az) === 0; });
+    hypervisor = hypervisor.filter(function(h) { return Util.matchAZ(h.availability_zone); });
     // (don't really need to filter instance; won't show any instances belonging to filtered-out hypervisors)
 
     // make shallow copy of hypervisor array, with additional:

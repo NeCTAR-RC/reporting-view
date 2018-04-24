@@ -90,12 +90,12 @@ var Util = {};
             fetch.clear(); // empty queue, to avoid infinite loop
 
             // populate the list of AZs, then queue and fetch everything else
-            fillNodes(selector, g.hypervisor, fetch);
+            fillNodes(selector, g['hypervisor?active=1'], fetch);
             qdeps(fetch, deps);
             fetch();
         });
         fetch.q({
-            qks     : ['hypervisor'],
+            qks     : ['hypervisor?active=1'],
             start   : on.start,
             success : on.success,
             error   : on.error,
@@ -153,6 +153,16 @@ var Util = {};
           .append('a')
             .attr('href', function(d) { return Config.baseURL + d.url; })
             .html(function(d) { return d.name; });
+    };
+
+    /// return true iff the given availability_zone matches the current localStorage value
+    /// This does a "prefix match" so e.g. if localStorage value is "az"
+    /// then matchAZ("az-01") === true.
+    Util.matchAZ = function(availability_zone) {
+        var az = localStorage.getItem(Util.nodeKey);
+        return !az ||  // match anything by default
+               az === availability_zone ||
+               availability_zone.indexOf(az + '-') === 0;
     };
 
     /// check if browser supports web storage api
