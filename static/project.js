@@ -6,7 +6,7 @@ Project.init = function() {
     Util.initReport([
         {
             sel : '.report',
-            dep : ['project?personal=0&has_instances=1', 'flavour'],
+            dep : ['project?personal=0&has_instances=1', 'flavour', 'aggregate_host'],
             fun : report,
         },
     ], {
@@ -53,7 +53,40 @@ var report = function(sel, data) {
     var warn = s.select('.warning');
     var project = data['project?personal=0&has_instances=1'];
     var flavour = data.flavour;
+    var aggregateHost = data['aggregate_host'];
     var az = localStorage.getItem(Util.nodeKey);
+
+    // look up historical host aggregate mappings
+    var aggregatesByHost = {};
+    aggregateHost.forEach(function(ah) {
+        if(!(ah['host'] in aggregatesByHost)) {
+            aggregatesByHost[ah['host']] = [];
+        }
+        aggregatesByHost[ah['host']].push({
+            availability_zone: ah['availability_zone'],
+            timestamp: Date.parse(ah['last_seen'] + 'Z')  // append 'Z' to make it iso8601
+        });
+    });
+    Object.keys(aggregatesByHost).forEach(function(host) {
+        // sort each aggregatesByHost in reverse chronological order (most recent first)
+        aggregatesByHost[host].sort(function(h1, h2) {
+            return h2.timestamp - h1.timestamp;
+        });
+    });
+    var aggregateLookup = function(host, timestamp) {
+        // chronological list of {availability_zone, timestamp} for host
+        var abhs = aggregatesByHost[host];
+
+        // search historical data to find the most recent record with
+        // last_seen prior to the passed timestamp
+        var ret;
+        for(var i = 0; i < abhs.length; i++) {
+            ret = abhs[i].availability_zone;
+            if(abhs[i].timestamp <= timestamp) break;  // found the most recent record
+        }
+
+        return ret;
+    };
 
     // extract project ids, organisations, and display names, and sort
     project = project
@@ -64,10 +97,11 @@ var report = function(sel, data) {
     // generate project <select>
     var projSelect = s.select('select#project');
     var projectOpt = projSelect.selectAll('option')
-        .data(project);
+        .data(project.length > 0 ? project : [{id: null, display_name: '(none)', disabled: 'disabled'}]);
     projectOpt.enter().append('option');
     projectOpt
         .attr('value', function(d) { return d.id; })
+        .attr('disabled', function(d) { return d.disabled; })
         .text(function(d) { return d.display_name; });
     projectOpt.exit().remove();
 
@@ -153,7 +187,7 @@ var report = function(sel, data) {
         // create list of projects whose data should be fetched
         var pids;
         if(s.select('label[for=institution] input[type=radio]').property('checked')) {
-            pids = inst[instSelect.property('value')];
+            pids = inst[instSelect.property('value')] || [];
         } else {
             // picking a single project: make array with length 1
             var pid = projSelect.property('value');
@@ -245,7 +279,7 @@ var report = function(sel, data) {
             var activeInstance  = instance.filter(function(i) { return i.active; });
             var activeVolume    = volume.filter(function(v) { return v.active; });
             activeResources = pids.map(function(pid) {
-                var ret = {pid : pid, label : project.find(function(p) { return p.id === pid; }).display_name};
+                var ret = {pid : pid};
                 resources.forEach(function(r) {
                     // TODO would it be better to store the aggregated data by project_id, to avoid filtering here
                     ret[r.key] = 0;
@@ -353,7 +387,7 @@ var report = function(sel, data) {
             });
 
             // initialise date selectors
-            if(!report.startPicker) {
+            if(!report.startPicker && events.length > 0) {
                 var startSelected = function(date) {
                     report.endPicker.setMinDate(date);
                     chart.dispatch.zoom([date, report.endPicker.getDate()]);
@@ -390,6 +424,8 @@ var report = function(sel, data) {
 
             // data now ready for plotting
             var updateCharts = function() {
+                if(events.length === 0) return;
+
                 var idx = resSelect.property('selectedIndex');
 
                 // if selected resource is volumes, list volumes; otherwise, list instances
@@ -438,7 +474,16 @@ var report = function(sel, data) {
                         {
                             title : 'Availability zone',
                             data : function(ins) {
-                                return ins.availability_zone;
+                                // We display the availability_zone of the host
+                                // running the instance, at the time that the
+                                // instance was created; in theory, the host
+                                // could be moved to another availability zone,
+                                // in which case ins.availability_zone would
+                                // show the different, current value, and the
+                                // result of aggregateLookup shown here would
+                                // be different. This could be confusing, and
+                                // hopefully would not happen in practice.
+                                return aggregateLookup(ins.hypervisor, ins._c_time);
                             },
                         },
                         {
