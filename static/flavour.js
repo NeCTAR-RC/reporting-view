@@ -130,8 +130,6 @@ function report_list(sel, g) {
 
     // make shallow copy of hypervisor array, with additional:
     //   _allocated array corresponding to global "res"
-    //   _trimmed   substring of hostname, before first '.' ("cn34.qld.nectar.org.au" -> "cn34")
-    var trimmed = {}; // to make sure _trimmed are all unique...
     var data = hypervisor
         .map(function(hyp) {
             // copy all hypervisor attributes
@@ -139,16 +137,6 @@ function report_list(sel, g) {
             for(var k in hyp) {
                 ret[k] = hyp[k];
             }
-
-            // trim hypervisor names
-            ret._trimmed = hyp.hostname;
-            var i = ret._trimmed.indexOf('.');
-            if(i > -1) ret._trimmed = ret._trimmed.substr(0, i);
-            if(ret._trimmed in trimmed) {
-                // TODO handle errors better...
-                console.log('Error: duplicate trimmed hostname for "'+hyp.hostname+'"');
-            }
-            trimmed[ret._trimmed] = true;
 
             // will keep running count of resources allocated
             ret._allocated = res.map(function() { return 0; });
@@ -160,11 +148,7 @@ function report_list(sel, g) {
     instance.forEach(function(ins) {
         if(!ins.hypervisor) return; // ignore hypervisor=null, since those are not running anyway
 
-        // match instance.hypervisor and hypervisor.hostname by trimming both and comparing
-        var trimmed = ins.hypervisor;
-        var i = trimmed.indexOf('.');
-        if(i > -1) trimmed = trimmed.substr(0, i);
-        var hyp = data.find(function(h) { return h._trimmed === trimmed; });
+        var hyp = data.find(function(h) { return h.host === ins.hypervisor; });
         if(hyp) {
             res.forEach(function(r, i) {
                 hyp._allocated[i] += r.accessor.instance(ins);
