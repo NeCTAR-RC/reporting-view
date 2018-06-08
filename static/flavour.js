@@ -60,17 +60,14 @@ function report_flavs(sel, g) {
     var s = d3.select(sel);
 
     var slct = s.select('select.flavours') // "select" is a word overused yet reserved
-        .on('change', function() { var fid = this.value; dispatch.flavChanged(sel, g.flavour.find(function(f){ return f.id==fid; })); });
+        .on('change', function() { var fid = this.value; dispatch.flavChanged(sel, flavour.find(function(f){ return f.id==fid; })); });
     var makeSelect = function() {
-        // show just m2 range, or all?
-        var flavs;
-        if(s.select('.allflav input').property('checked')) {
-            flavs = flavour.filter(function() { return true; }); // shallow copy for sorting
-            flavs.sort(function(a, b) { return a.name < b.name ? -1 : a.name > b.name ? 1 : 0; }); // sort lexicographically
-        } else {
-            flavs = flavour.filter(function(f) { return f.name.indexOf('m2.')===0; });
-            flavs.sort(function(a, b) { return a.vcpus - b.vcpus; }); // sort by vcpus
-        }
+        // filter and sort flavours (lexicographically)
+        var flavs = flavour.filter(s.select('.allflav input').property('checked')
+            ? function() { return true; }  // show all
+            : function(f) { return f.public && f.active; }
+        );
+        flavs.sort(function(a, b) { return a.name < b.name ? -1 : a.name > b.name ? 1 : 0; });
 
         // remove any old placeholders before doing data join
         slct.selectAll('option[disabled]').remove();
